@@ -10,7 +10,7 @@ import matplotlib.pylab as plt
 import requests
 
 
-model = YOLO('../YOLO-weights/best_v7.pt')
+model = YOLO('../YOLO-weights/best_v9.pt')
 
 # Инициализируем работу с видео
 

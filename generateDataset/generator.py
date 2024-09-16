@@ -67,7 +67,10 @@ for img_name in img_list:
 
 
     # записываем файл аннотации в папку базы изображений для импорта
-    txt_name = img_name.replace(".jpg", ".txt")
+    if "jpg" in img_name:
+        txt_name = img_name.replace(".jpg", ".txt")
+    if "png" in img_name:
+        txt_name = img_name.replace(".png", ".txt")
     #cv2.imwrite(os.path.join(train_labels_path, txt_name), img_copy)
 
     with open(f'images/train/labels/{txt_name}', 'w') as f:
