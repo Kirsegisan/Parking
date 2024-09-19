@@ -1,3 +1,36 @@
 .testClass{
     background: rgba(150, 20, 80, 0.2);
 }
+
+.nameOfWebsite{
+    color: rgba(10, 50, 70, 1);
+}
+
+
+.mainHeader{
+    background: rgba(0, 150, 200, 1);
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    height: 150px;
+    width: 150%;
+    
+}
+
+
+.anyOneElse{
+    z-index: 0;
+}
+
+.headerButtons{
+    justify-content:flex-end;
+    top: 50%;
+    right: 10px;
+}
+
+
+.headerButton{
+    justify-content:flex-end;
+    width: 100px;
+}
