@@ -1,6 +1,6 @@
 from ultralytics import YOLO
 import cv2
-import sourse as sr
+import source as sr
 import os
 import numpy as np
 
@@ -82,7 +82,7 @@ def detect(camera, video_path):
     sr.delete_shit_in_data()
     # cv2.imshow('image', sr.draw_data(image_to_process, sr.chek_free_space()))
     # cv2.waitKey(0)
-    free_space = sr.chek_free_space()
+    free_space = sr.cheсk_free_space()
     return sr.draw_data(image_to_process, free_space), free_space
         #cv2.waitKey(0)
 

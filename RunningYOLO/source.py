@@ -50,7 +50,7 @@ def now_all_space_free():
     data_base.save("dataBase.xlsx")
 
 
-def chek_free_space():
+def cheсk_free_space():
     free_space = []
     for i in range(2, camera_Pac.max_row):
         if camera_Pac.cell(row=i, column=6).value == "True":

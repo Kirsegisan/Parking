@@ -6,7 +6,7 @@ import time
 import threading
 import requests
 from key import TOKEN
-import sourse as sr
+import source as sr
 import conectToUserDataBase as usersDB
 import conetcToCamerasDataBase as camerasDB
 
@@ -55,7 +55,7 @@ def meat_papa(update: Update, context: CallbackContext):
         print(papaChatID)
 
     else:
-        update.message.reply_text(f"ы не мой папа")
+        update.message.reply_text(f"Ты не мой папа")
 
 
 def call_detect(update: Update, context: CallbackContext):
