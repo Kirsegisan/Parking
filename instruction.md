@@ -23,3 +23,72 @@
   - В Shell строку вбить команду pkill -f bot.py для завершения работы бота
   - В Shell строку вбить команду nohup bash init.sh для запуска бота
 ---
+## Работа с файлами на хосте
+---
+  Все файлы базы данных находятся в (/www/Parking/RunningYOLO/) и их нельзя редактировать на самом хосте поэтому:
+  - Скачать файл
+  - Изменить
+  - Вставить обратно, замевив
+---
+## Обнуление базы данных через бота
+---
+  - Обратится к адресу, базу данного которого нужно обнулить, написав его
+  - Написать боту dalata dete
+---
+## Дополнение датасета
+---
+  - Зайти на хост и скачать фотографии из папки (/www/Parking/generateDataset/imgbase/)
+  - Удалить их с хоста
+  - Зайти на сайт (https://app.roboflow.com/parkingai-cyfy5/parking-utku6/)
+  - В вкладке (Upload data) вставить фото в центральное окно
+  - Сохранить (Синяя кнопка справой стороны окна)
+  - Перейти во вкладку (Annotate)
+  - Выбрать функцию автоматической анатации
+  - Подтвердить новоразмеченные фотографиии
+  - Во вкладке (Versions) создть новую версию датасета
+---
+## Обучение нейросети
+---
+  - Открыть Google colab / Anaconda ну или еще что-то подобное
+  - Последовательно выполнить строки
+  !nvidia-smi
+---
+  import os
+HOME = os.getcwd()
+print(HOME)
+---
+  !pip install ultralytics==8.2.103 -q
+
+from IPython import display
+display.clear_output()
+
+import ultralytics
+ultralytics.checks()
+---
+  from ultralytics import YOLO
+
+from IPython.display import display, Image
+---
+  Вставить код подкачки последней версии датасета
+    - зайти на (https://app.roboflow.com/parkingai-cyfy5/parking-utku6/)
+    - Во вкладке (Versions) (Download dataset)
+---
+  %cd {HOME}
+
+!yolo task=detect mode=train model=yolov8s.pt data={dataset.location}/data.yaml epochs=25 imgsz=640 plots=True
+---
+  project.version(dataset.version).deploy(model_type="yolov8", model_path=f"{HOME}/runs/detect/train/")
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
