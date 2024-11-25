@@ -53,31 +53,27 @@
   - Последовательно выполнить строки
   !nvidia-smi
 ---
-  import os
-HOME = os.getcwd()
-print(HOME)
+    import os
+  HOME = os.getcwd()
+  print(HOME)
 ---
-  !pip install ultralytics==8.2.103 -q
-
-from IPython import display
-display.clear_output()
-
-import ultralytics
-ultralytics.checks()
+    !pip install ultralytics==8.2.103 -q
+  from IPython import display
+  display.clear_output()
+  import ultralytics
+  ultralytics.checks()
 ---
-  from ultralytics import YOLO
-
-from IPython.display import display, Image
+    from ultralytics import YOLO
+  from IPython.display import display, Image
 ---
   Вставить код подкачки последней версии датасета
     - зайти на (https://app.roboflow.com/parkingai-cyfy5/parking-utku6/)
     - Во вкладке (Versions) (Download dataset)
 ---
-  %cd {HOME}
-
-!yolo task=detect mode=train model=yolov8s.pt data={dataset.location}/data.yaml epochs=25 imgsz=640 plots=True
+    %cd {HOME}
+  !yolo task=detect mode=train model=yolov8s.pt data={dataset.location}/data.yaml epochs=25 imgsz=640 plots=True
 ---
-  project.version(dataset.version).deploy(model_type="yolov8", model_path=f"{HOME}/runs/detect/train/")
+    project.version(dataset.version).deploy(model_type="yolov8", model_path=f"{HOME}/runs/detect/train/")
 ---
 
 
