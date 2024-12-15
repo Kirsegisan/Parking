@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from openpyxl import load_workbook
+import time
 
 data_base = load_workbook("dataBase.xlsx")
 camera_Pac = []
@@ -45,14 +46,18 @@ def delete_data():
 
 
 def now_all_space_free():
+    tO = time.time()
     for i in range(2, camera_Pac.max_row + 1):
         if camera_Pac.cell(row=i, column=5).value:
             camera_Pac.cell(row=i, column=6).value = 1
     data_base.save("dataBase.xlsx")
+    tN = time.time()
+    print("now_all_space_free", tN - tO)
 
 
 def cheсk_free_space():
     free_space = []
+    tO = time.time()
     for i in range(2, camera_Pac.max_row):
         if camera_Pac.cell(row=i, column=6).value == 1:
             free_space.append([camera_Pac.cell(row=i, column=1).value,
@@ -62,6 +67,8 @@ def cheсk_free_space():
                                 camera_Pac.cell(row=i, column=5).value,
                                 camera_Pac.cell(row=i, column=6).value])
     print(free_space)
+    tN = time.time()
+    print("cheсk_free_space", tN - tO)
     return free_space
 
 
@@ -110,6 +117,7 @@ def get_data():
 #Функции для подсчета Intersection over Union (IoU)
 def calculate_iou(box, boxes, box_area, boxes_area, image_to_process):
     #Считаем IoU
+    t = 0
     y1 = np.maximum(box[0], boxes[:, 0])
     y2 = np.minimum(box[2]+box[0], boxes[:, 2]+boxes[:, 0])
     x1 = np.maximum(box[1], boxes[:, 1])
@@ -123,18 +131,22 @@ def calculate_iou(box, boxes, box_area, boxes_area, image_to_process):
             #draw_two_box(image_to_process, [box, boxes[i]])
             #print(iou[i], box, boxes[i])
             midle = finde_midle(box, boxes[i])
+            tO = time.time()
             camera_Pac.cell(row=i + 2, column=1).value = midle[0]
             camera_Pac.cell(row=i + 2, column=2).value = midle[1]
             camera_Pac.cell(row=i + 2, column=3).value = midle[2]
             camera_Pac.cell(row=i + 2, column=4).value = midle[3]
             camera_Pac.cell(row=i + 2, column=5).value = midle[4]
             camera_Pac.cell(row=i + 2, column=6).value = 0
+            tN = time.time()
+            t += tO - tN
             data_base.save("dataBase.xlsx")
             flag = 0
         if iou[i] > 0.2 :
             camera_Pac.cell(row=i + 2, column=6).value = 0
             data_base.save("dataBase.xlsx")
     if flag:
+        tO = time.time()
         row = camera_Pac.max_row
         camera_Pac.cell(row=row, column=1).value = box[0]
         camera_Pac.cell(row=row, column=2).value = box[1]
@@ -142,7 +154,13 @@ def calculate_iou(box, boxes, box_area, boxes_area, image_to_process):
         camera_Pac.cell(row=row, column=4).value = box[3]
         camera_Pac.cell(row=row, column=5).value = 1
         camera_Pac.cell(row=row, column=6).value = 0
+        tN = time.time()
+        t += tO - tN
+    tO = time.time()
     data_base.save("dataBase.xlsx")
+    tN = time.time()
+    t += tO - tN
+    print("iou", t)
     return iou
 
 #Функция для расчета персечения всех со всеми через IoU

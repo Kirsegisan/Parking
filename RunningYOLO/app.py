@@ -76,7 +76,7 @@ def detect(camera, video_path):
             data_boxes = sr.get_data()
             sr.now_all_space_free()
             #print(data_boxes)
-            print(annot_lines)
+            #print(annot_lines)
             free_space = []
             overlaps = 0
             if data_boxes and annot_lines:
