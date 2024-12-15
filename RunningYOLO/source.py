@@ -81,7 +81,7 @@ def cheсk_not_free_space():
 
 def delete_shit_in_data():
     for i in range(2, camera_Pac.max_row):
-        if camera_Pac.cell(row=i, column=5).value and int(camera_Pac.cell(row=i, column=5).value) < 5:
+        if camera_Pac.cell(row=i, column=5).value and int(camera_Pac.cell(row=i, column=5).value) < 4:
             #camera_Pac.delete_rows(i)
             camera_Pac.cell(row=i, column=1).value = None
             camera_Pac.cell(row=i, column=2).value = None

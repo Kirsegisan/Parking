@@ -16,7 +16,7 @@ def detect(camera, video_path):
     tO = time.time()
     print(camera, video_path)
     sr.setCameraPac(camera)
-    cadr = 10
+    cadr = 5
     video_capture = cv2.VideoCapture(video_path)
     tN = time.time()
     print("Connect camera", tN - tO)
@@ -26,7 +26,7 @@ def detect(camera, video_path):
         ret, image_to_process = video_capture.read()
 
         height, width, _ = image_to_process.shape
-        if cadr == 9:
+        if cadr == 4:
             count = len(os.listdir(r"../generateDataset/imgbase")) + 1
             cv2.imwrite(f'../generateDataset/imgbase/image{count}.png', image_to_process)
             print(f"Images{count} is saved")
