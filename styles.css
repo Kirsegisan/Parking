@@ -1,0 +1,103 @@
+/* Общие стили */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+}
+
+/* Шапка */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background-color: #333;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 10;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.slogan {
+    font-size: 18px;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Скрываем слоган при прокрутке */
+body.scrolled .slogan {
+    opacity: 0;
+}
+
+/* Меню */
+.menu {
+    position: relative;
+    height: 40px;
+    background-color: #444;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 20px;
+}
+
+.menu-button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    color: white;
+    font-size: 16px;
+    padding: 10px;
+}
+
+.menu-list {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    width: 200px;
+    background-color: #666;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    list-style-type: none;
+    padding: 10px;
+}
+
+.menu-list a {
+    display: block;
+    text-decoration: none;
+    color: white;
+    padding: 10px;
+}
+
+.menu-opened .menu-list {
+    transform: translateX(0);
+}
+
+/* Основное содержимое */
+.content {
+    padding-top: 80px; /* Чтобы компенсировать высоту шапки */
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Подвал */
+.footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    margin-top: 50px;
+}

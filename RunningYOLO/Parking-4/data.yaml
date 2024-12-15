@@ -1,0 +1,12 @@
+names:
+- car
+nc: 1
+roboflow:
+  license: CC BY 4.0
+  project: parking-utku6
+  url: https://universe.roboflow.com/parkingai-cyfy5/parking-utku6/dataset/4
+  version: 4
+  workspace: parkingai-cyfy5
+test: ../test/images
+train: Parking-4/train/images
+val: Parking-4/valid/images
