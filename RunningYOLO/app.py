@@ -59,7 +59,8 @@ def detect(camera, video_path):
             heightBox = ymax - ymin
             center_x = xmin + (widthBox / 2)
             center_y = ymin + (heightBox / 2)
-        annotation = [xmin - widthBox / 2, ymin + heightBox / 2, widthBox, heightBox]
+            annotation = [center_x - (widthBox / 2), center_y - (heightBox / 2), widthBox, heightBox]
+            annot_lines.append(annotation)
         #
 
         # for i in results["predictions"]:
@@ -74,8 +75,8 @@ def detect(camera, video_path):
         else:
             data_boxes = sr.get_data()
             sr.now_all_space_free()
-            # print(data_boxes)
-            # print(annot_lines)
+            #print(data_boxes)
+            print(annot_lines)
             free_space = []
             overlaps = 0
             if data_boxes and annot_lines:
