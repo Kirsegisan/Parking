@@ -76,11 +76,14 @@ def meat_papa(update, context):
 def call_detect(update, context):
     update.message.reply_text(f"Сейчас посмотрим...")
     update.message.chat.send_chat_action("typing")
-    detect_result = camerasDB.detAnalysisAddresses(update.message.text)
-    update.message.reply_text(f"Я нашел {len(detect_result[1])} мест")
-    cv2.imwrite('./image_test_free.png', detect_result[0])
-    files = {'photo': open('./image_test_free.png', 'rb')}
-    requests.post(f'{URL}{TOKEN}/sendPhoto?chat_id={update.message.chat_id}', files=files)
+    try:
+        detect_result = camerasDB.detAnalysisAddresses(update.message.text)
+        update.message.reply_text(f"Я нашел {len(detect_result[1])} мест")
+        cv2.imwrite('./image_test_free.png', detect_result[0])
+        files = {'photo': open('./image_test_free.png', 'rb')}
+        requests.post(f'{URL}{TOKEN}/sendPhoto?chat_id={update.message.chat_id}', files=files)
+    except:
+        update.message.reply_text("Что-то пошло не так, и все сломалось")
     update.message.chat.send_chat_action("CANCEL")
 
 

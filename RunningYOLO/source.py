@@ -15,11 +15,12 @@ def nexStep():
 
 def createData(annot_lines):
     if camera_Pac.cell(row=1, column=1).value == 0:
-        for parkingInd in range(len(annot_lines)):
-            camera_Pac.cell(row=parkingInd + 2, column=1).value = annot_lines[parkingInd][0]
-            camera_Pac.cell(row=parkingInd + 2, column=2).value = annot_lines[parkingInd][1]
-            camera_Pac.cell(row=parkingInd + 2, column=3).value = annot_lines[parkingInd][2]
-            camera_Pac.cell(row=parkingInd + 2, column=4).value = annot_lines[parkingInd][3]
+        m = camera_Pac.max_row - 1
+        for parkingInd in range(m, len(annot_lines) + m):
+            camera_Pac.cell(row=parkingInd + 2, column=1).value = annot_lines[parkingInd - m][0]
+            camera_Pac.cell(row=parkingInd + 2, column=2).value = annot_lines[parkingInd - m][1]
+            camera_Pac.cell(row=parkingInd + 2, column=3).value = annot_lines[parkingInd - m][2]
+            camera_Pac.cell(row=parkingInd + 2, column=4).value = annot_lines[parkingInd - m][3]
             camera_Pac.cell(row=parkingInd + 2, column=5).value = 1
             camera_Pac.cell(row=parkingInd + 2, column=6).value = 0
         camera_Pac.cell(row=1, column=1).value += 1
@@ -48,7 +49,7 @@ def delete_data():
 def now_all_space_free():
     tO = time.time()
     for i in range(2, camera_Pac.max_row + 1):
-        if camera_Pac.cell(row=i, column=5).value:
+        if camera_Pac.cell(row=i, column=5).value and camera_Pac.cell(row=i, column=5).value != -1:
             camera_Pac.cell(row=i, column=6).value = 1
     data_base.save("dataBase.xlsx")
     tN = time.time()
@@ -88,7 +89,7 @@ def cheсk_not_free_space():
 
 def delete_shit_in_data():
     for i in range(2, camera_Pac.max_row):
-        if camera_Pac.cell(row=i, column=5).value and int(camera_Pac.cell(row=i, column=5).value) < 4:
+        if camera_Pac.cell(row=i, column=5).value and int(camera_Pac.cell(row=i, column=5).value) < 4 and camera_Pac.cell(row=i, column=5).value != -1:
             #camera_Pac.delete_rows(i)
             camera_Pac.cell(row=i, column=1).value = None
             camera_Pac.cell(row=i, column=2).value = None
@@ -127,6 +128,10 @@ def calculate_iou(box, boxes, box_area, boxes_area, image_to_process):
     iou = intersection / union
     flag = 1
     for i in range(len(iou)):
+        if iou[i] > 0.3:
+            if camera_Pac.cell(row=i + 2, column=6).value == -1:
+                flag = 0
+                break
         if iou[i] > 0.6:
             #draw_two_box(image_to_process, [box, boxes[i]])
             #print(iou[i], box, boxes[i])
@@ -160,7 +165,7 @@ def calculate_iou(box, boxes, box_area, boxes_area, image_to_process):
     data_base.save("dataBase.xlsx")
     tN = time.time()
     t += tO - tN
-    print("iou", t)
+    #print("iou", t)
     return iou
 
 #Функция для расчета персечения всех со всеми через IoU

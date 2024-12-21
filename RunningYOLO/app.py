@@ -6,7 +6,7 @@ import os
 import time
 import numpy as np
 
-model = YOLO('../YOLO-weights/best_v15.pt')
+model = YOLO('../YOLO-weights/best_v16.pt')
 
 #rf = Roboflow(api_key="kmdwHagZQlYas7gzGfw9")
 #project = rf.workspace("parkingai-cyfy5").project("parking-utku6")
@@ -40,7 +40,7 @@ def detect(camera, video_path):
         print("Detect images", tN - tO)
         tO = tN
         #print(results)
-        #
+
         bboxes_ = results[0].boxes.xyxy.tolist()
         bboxes = list(map(lambda x: list(map(lambda y: int(y), x)), bboxes_))
         confs_ = results[-1].boxes.conf.tolist()
