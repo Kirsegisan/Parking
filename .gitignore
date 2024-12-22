@@ -1,5 +1,6 @@
 /venv/
-/RuningYOLO/key.py/
+/env/
+/RunningYOLO/key.py/
 /Parking.blend/
-/RuningYOLO/dataBase.xlsx/
+/RunningYOLO/dataBase.xlsx/
 /generateDataset/imgbase/
