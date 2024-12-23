@@ -4,6 +4,7 @@ import cv2
 import source as sr
 import os
 import time
+from RedZoneConvert import draw_red_zone
 import numpy as np
 
 model = YOLO('../YOLO-weights/best_v16.pt')
@@ -24,7 +25,7 @@ def detect(camera, video_path):
     while cadr > 0:
         cadr -= 1
         ret, image_to_process = video_capture.read()
-
+        image_to_process = draw_red_zone(image_to_process, camera)
         height, width, _ = image_to_process.shape
         if cadr == 4:
             count = len(os.listdir(r"../generateDataset/imgbase")) + 1

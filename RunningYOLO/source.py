@@ -128,10 +128,6 @@ def calculate_iou(box, boxes, box_area, boxes_area, image_to_process):
     iou = intersection / union
     flag = 1
     for i in range(len(iou)):
-        if iou[i] > 0.3:
-            if camera_Pac.cell(row=i + 2, column=6).value == -1:
-                flag = 0
-                break
         if iou[i] > 0.6:
             #draw_two_box(image_to_process, [box, boxes[i]])
             #print(iou[i], box, boxes[i])
