@@ -25,7 +25,7 @@ def detect(camera, video_path):
     while cadr > 0:
         cadr -= 1
         ret, image_to_process = video_capture.read()
-        image_to_process = draw_red_zone(image_to_process, camera)
+        image_to_process = draw_red_zone(image_to_process, camera, 2)
         height, width, _ = image_to_process.shape
         if cadr == 4:
             count = len(os.listdir(r"../generateDataset/imgbase")) + 1
@@ -36,7 +36,7 @@ def detect(camera, video_path):
 
         class_indexes, class_scores, boxes = ([] for i in range(3))
         #results = model.predict(image_to_process, confidence=50, overlap=90).json()
-        results = model.predict(source=image_to_process, conf=0.50)
+        results = model.predict(source=draw_red_zone(image_to_process, camera), conf=0.50)
         tN = time.time()
         print("Detect images", tN - tO)
         tO = tN
