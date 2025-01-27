@@ -25,6 +25,7 @@ def detect(camera, video_path):
     while cadr > 0:
         cadr -= 1
         ret, image_to_process = video_capture.read()
+        original_images = image_to_process
         image_to_process = draw_red_zone(image_to_process, camera, 2)
         height, width, _ = image_to_process.shape
         if cadr == 4:
@@ -96,7 +97,7 @@ def detect(camera, video_path):
     free_space = sr.cheсk_free_space()
     not_free_space = sr.cheсk_not_free_space()
     print("Complite detect")
-    foto = sr.draw_data(image_to_process, sr.get_data(), (0, 0, 255))
+    foto = sr.draw_data(original_images, sr.get_data(), (0, 0, 255))
     foto = sr.draw_data(sr.draw_data(foto, not_free_space, (255, 0, 0)), free_space)
     tN = time.time()
     print("Rendering", tN - tO)
