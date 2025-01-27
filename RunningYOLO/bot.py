@@ -183,4 +183,3 @@ def addStart(update, context):
 
 if __name__ == '__main__':
     main()
-    input("Press Enter to exit...")
