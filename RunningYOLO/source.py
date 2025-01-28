@@ -143,9 +143,17 @@ def calculate_iou(box, boxes, box_area, boxes_area, image_to_process):
             t += tO - tN
             data_base.save("dataBase.xlsx")
             flag = 0
-        if iou[i] > 0.2 :
+        if iou[i] > 0.2:
+            midle = finde_midle(box, boxes[i])
+            midle = finde_midle(midle, boxes[i])
+            camera_Pac.cell(row=i + 2, column=1).value = midle[0]
+            camera_Pac.cell(row=i + 2, column=2).value = midle[1]
+            camera_Pac.cell(row=i + 2, column=3).value = midle[2]
+            camera_Pac.cell(row=i + 2, column=4).value = midle[3]
+            camera_Pac.cell(row=i + 2, column=5).value = midle[4]
             camera_Pac.cell(row=i + 2, column=6).value = 0
             data_base.save("dataBase.xlsx")
+            flag = 0
     if flag:
         tO = time.time()
         row = camera_Pac.max_row
