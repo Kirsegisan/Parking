@@ -7,7 +7,7 @@ import time
 from RedZoneConvert import draw_red_zone
 import numpy as np
 
-model = YOLO('../YOLO-weights/best_v16.pt')
+model = YOLO('../YOLO-weights/best_v18.pt')
 
 #rf = Roboflow(api_key="kmdwHagZQlYas7gzGfw9")
 #project = rf.workspace("parkingai-cyfy5").project("parking-utku6")

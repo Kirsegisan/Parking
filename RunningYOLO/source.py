@@ -103,14 +103,14 @@ def delete_shit_in_data():
 
 def get_data():
     boxes = []
-    for i in range(camera_Pac.max_row):
+    for i in range(2, camera_Pac.max_row):
         if camera_Pac.cell(row=i + 2, column=1).value:
-            boxes.append([camera_Pac.cell(row=i + 2, column=1).value,
-                          camera_Pac.cell(row=i + 2, column=2).value,
-                          camera_Pac.cell(row=i + 2, column=3).value,
-                          camera_Pac.cell(row=i + 2, column=4).value,
-                          camera_Pac.cell(row=i + 2, column=5).value,
-                          camera_Pac.cell(row=i + 2, column=6).value])
+            boxes.append([camera_Pac.cell(row=i, column=1).value,
+                          camera_Pac.cell(row=i, column=2).value,
+                          camera_Pac.cell(row=i, column=3).value,
+                          camera_Pac.cell(row=i, column=4).value,
+                          camera_Pac.cell(row=i, column=5).value,
+                          camera_Pac.cell(row=i, column=6).value])
 
     return boxes
 
