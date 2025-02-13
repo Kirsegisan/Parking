@@ -10,6 +10,7 @@ from key import TOKEN
 import source as sr
 import conectToUserDataBase as usersDB
 import conetcToCamerasDataBase as camerasDB
+import traceback
 
 # -*- coding: utf-8 -*-
 
@@ -78,11 +79,14 @@ def call_detect(update, context):
     update.message.chat.send_chat_action("typing")
     try:
         detect_result = camerasDB.detAnalysisAddresses(update.message.text)
-        # update.message.reply_text(f"Я нашел {len(detect_result[1])} мест")
+        update.message.reply_text(f"Я нашел {len(detect_result[1])} свободных мест и {len(detect_result[2])} занятых")
         cv2.imwrite('./image_test_free.png', detect_result[0])
         files = {'photo': open('./image_test_free.png', 'rb')}
         requests.post(f'{URL}{TOKEN}/sendPhoto?chat_id={update.message.chat_id}', files=files)
-    except:
+    except Exception as e:
+        # Печатаем ошибку в консоль
+        print(f"Произошла ошибка: {e}")
+        traceback.print_exc()  # Это напечатает полный traceback ошибки
         update.message.reply_text("Что-то пошло не так, и все сломалось")
     update.message.chat.send_chat_action("CANCEL")
 

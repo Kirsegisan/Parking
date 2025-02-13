@@ -6,9 +6,14 @@ import os
 import time
 from RedZoneConvert import draw_red_zone
 import numpy as np
+import matplotlib.pyplot as plt  # <-- Добавлено
 
 model = YOLO('../YOLO-weights/best_v18.pt')
 
+def show_image(image):
+    plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))  # Конвертация BGR в RGB
+    plt.axis('off')  # Скрыть оси
+    plt.show()
 #rf = Roboflow(api_key="kmdwHagZQlYas7gzGfw9")
 #project = rf.workspace("parkingai-cyfy5").project("parking-utku6")
 #model = project.version(13).model
@@ -26,7 +31,6 @@ def detect(camera, video_path):
         cadr -= 1
         ret, image_to_process = video_capture.read()
         cv2.imwrite(f'original_images.png', image_to_process)
-        image_to_process = draw_red_zone(image_to_process, camera, 2)
         height, width, _ = image_to_process.shape
         if cadr == 4:
             count = len(os.listdir(r"../generateDataset/imgbase")) + 1
@@ -38,6 +42,10 @@ def detect(camera, video_path):
         class_indexes, class_scores, boxes = ([] for i in range(3))
         #results = model.predict(image_to_process, confidence=50, overlap=90).json()
         results = model.predict(source=draw_red_zone(image_to_process, camera), conf=0.50)
+        annotated_image = results[0].plot()  # <-- Используем .plot() для визуализации
+
+        # show_image(annotated_image)
+
         tN = time.time()
         print("Detect images", tN - tO)
         tO = tN
@@ -98,11 +106,10 @@ def detect(camera, video_path):
     not_free_space = sr.cheсk_not_free_space()
     print("Complite detect")
     foto = sr.draw_data(cv2.imread("original_images.png"), sr.get_data(), (0, 0, 255))
-    foto = sr.draw_data(sr.draw_data(foto, not_free_space, (255, 0, 0)), free_space)
     tN = time.time()
     print("Rendering", tN - tO)
     tO = tN
-    return foto, free_space
+    return foto, free_space, not_free_space
         #cv2.waitKey(0)
 
 

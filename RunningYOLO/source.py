@@ -59,7 +59,7 @@ def now_all_space_free():
 def cheсk_free_space():
     free_space = []
     tO = time.time()
-    for i in range(2, camera_Pac.max_row):
+    for i in range(2, camera_Pac.max_row + 1):
         if camera_Pac.cell(row=i, column=6).value == 1:
             free_space.append([camera_Pac.cell(row=i, column=1).value,
                                 camera_Pac.cell(row=i, column=2).value,
@@ -69,13 +69,13 @@ def cheсk_free_space():
                                 camera_Pac.cell(row=i, column=6).value])
     print(free_space)
     tN = time.time()
-    print("cheсk_free_space", tN - tO)
+    print("cheсk_free_space", tN - tO, len(free_space))
     return free_space
 
 
 def cheсk_not_free_space():
     not_free_space = []
-    for i in range(2, camera_Pac.max_row):
+    for i in range(2, camera_Pac.max_row + 1):
         if camera_Pac.cell(row=i, column=6).value == 0:
             if camera_Pac.cell(row=i, column=1).value and camera_Pac.cell(row=i, column=2).value and camera_Pac.cell(row=i, column=3).value and camera_Pac.cell(row=i, column=4).value:
                 not_free_space.append([camera_Pac.cell(row=i, column=1).value,
@@ -87,30 +87,55 @@ def cheсk_not_free_space():
     return not_free_space
 
 
+def same_box(box1, box2):
+    n = 0
+    for i in range(4):
+        n += abs(box1[i] - box2[i])
+    return n < 30
+
+
 def delete_shit_in_data():
-    for i in range(2, camera_Pac.max_row):
-        if camera_Pac.cell(row=i, column=5).value and int(camera_Pac.cell(row=i, column=5).value) < 4 and camera_Pac.cell(row=i, column=5).value != -1:
-            #camera_Pac.delete_rows(i)
-            camera_Pac.cell(row=i, column=1).value = None
-            camera_Pac.cell(row=i, column=2).value = None
-            camera_Pac.cell(row=i, column=3).value = None
-            camera_Pac.cell(row=i, column=4).value = None
-            camera_Pac.cell(row=i, column=5).value = None
-            camera_Pac.cell(row=i, column=6).value = None
-            print("One more shit was deleted")
-            data_base.save("dataBase.xlsx")
+    i = 2
+    max_row = camera_Pac.max_row
+    while i <= max_row - 1:
+        j = i + 1
+        while j <= max_row:
+            box1 = [
+                camera_Pac.cell(row=i, column=1).value,
+                camera_Pac.cell(row=i, column=2).value,
+                camera_Pac.cell(row=i, column=3).value,
+                camera_Pac.cell(row=i, column=4).value
+                    ]
+            box2 = [
+                camera_Pac.cell(row=j, column=1).value,
+                camera_Pac.cell(row=j, column=2).value,
+                camera_Pac.cell(row=j, column=3).value,
+                camera_Pac.cell(row=j, column=4).value
+            ]
+            if same_box(box1, box2):
+                camera_Pac.delete_rows(j)
+                max_row -= 1
+                # camera_Pac.cell(row=i, column=1).value = None
+                # camera_Pac.cell(row=i, column=2).value = None
+                # camera_Pac.cell(row=i, column=3).value = None
+                # camera_Pac.cell(row=i, column=4).value = None
+                # camera_Pac.cell(row=i, column=5).value = None
+                # camera_Pac.cell(row=i, column=6).value = None
+                print("One more shit was deleted")
+                data_base.save("dataBase.xlsx")
+            j += 1
+        i += 1
 
 
 def get_data():
     boxes = []
-    for i in range(2, camera_Pac.max_row):
-        if camera_Pac.cell(row=i + 2, column=1).value:
-            boxes.append([camera_Pac.cell(row=i, column=1).value,
-                          camera_Pac.cell(row=i, column=2).value,
-                          camera_Pac.cell(row=i, column=3).value,
-                          camera_Pac.cell(row=i, column=4).value,
-                          camera_Pac.cell(row=i, column=5).value,
-                          camera_Pac.cell(row=i, column=6).value])
+    for i in range(2, camera_Pac.max_row + 1):
+        boxes.append([camera_Pac.cell(row=i, column=1).value,
+                      camera_Pac.cell(row=i, column=2).value,
+                      camera_Pac.cell(row=i, column=3).value,
+                      camera_Pac.cell(row=i, column=4).value,
+                      camera_Pac.cell(row=i, column=5).value,
+                      camera_Pac.cell(row=i, column=6).value])
 
     return boxes
 
@@ -127,18 +152,18 @@ def calculate_iou(box, boxes, box_area, boxes_area, image_to_process):
     union = box_area + boxes_area[:] - intersection[:]
     iou = intersection / union
     flag = 1
-    for i in range(len(iou)):
+    for i in range(2, len(iou)):
         if iou[i] > 0.6:
             #draw_two_box(image_to_process, [box, boxes[i]])
             #print(iou[i], box, boxes[i])
             midle = finde_midle(box, boxes[i])
             tO = time.time()
-            camera_Pac.cell(row=i + 2, column=1).value = midle[0]
-            camera_Pac.cell(row=i + 2, column=2).value = midle[1]
-            camera_Pac.cell(row=i + 2, column=3).value = midle[2]
-            camera_Pac.cell(row=i + 2, column=4).value = midle[3]
-            camera_Pac.cell(row=i + 2, column=5).value = midle[4]
-            camera_Pac.cell(row=i + 2, column=6).value = 0
+            camera_Pac.cell(row=i, column=1).value = midle[0]
+            camera_Pac.cell(row=i, column=2).value = midle[1]
+            camera_Pac.cell(row=i, column=3).value = midle[2]
+            camera_Pac.cell(row=i, column=4).value = midle[3]
+            camera_Pac.cell(row=i, column=5).value = midle[4]
+            camera_Pac.cell(row=i, column=6).value = 0
             tN = time.time()
             t += tO - tN
             data_base.save("dataBase.xlsx")
@@ -146,23 +171,23 @@ def calculate_iou(box, boxes, box_area, boxes_area, image_to_process):
         if iou[i] > 0.2:
             midle = finde_midle(box, boxes[i])
             midle = finde_midle(midle, boxes[i])
-            camera_Pac.cell(row=i + 2, column=1).value = midle[0]
-            camera_Pac.cell(row=i + 2, column=2).value = midle[1]
-            camera_Pac.cell(row=i + 2, column=3).value = midle[2]
-            camera_Pac.cell(row=i + 2, column=4).value = midle[3]
-            camera_Pac.cell(row=i + 2, column=5).value = midle[4]
-            camera_Pac.cell(row=i + 2, column=6).value = 0
+            camera_Pac.cell(row=i, column=1).value = midle[0]
+            camera_Pac.cell(row=i, column=2).value = midle[1]
+            camera_Pac.cell(row=i, column=3).value = midle[2]
+            camera_Pac.cell(row=i, column=4).value = midle[3]
+            camera_Pac.cell(row=i, column=5).value = midle[4]
+            camera_Pac.cell(row=i, column=6).value = 0
             data_base.save("dataBase.xlsx")
             flag = 0
     if flag:
         tO = time.time()
         row = camera_Pac.max_row
-        camera_Pac.cell(row=row, column=1).value = box[0]
-        camera_Pac.cell(row=row, column=2).value = box[1]
-        camera_Pac.cell(row=row, column=3).value = box[2]
-        camera_Pac.cell(row=row, column=4).value = box[3]
-        camera_Pac.cell(row=row, column=5).value = 1
-        camera_Pac.cell(row=row, column=6).value = 0
+        camera_Pac.cell(row=row + 1, column=1).value = box[0]
+        camera_Pac.cell(row=row + 1, column=2).value = box[1]
+        camera_Pac.cell(row=row + 1, column=3).value = box[2]
+        camera_Pac.cell(row=row + 1, column=4).value = box[3]
+        camera_Pac.cell(row=row + 1, column=5).value = 1
+        camera_Pac.cell(row=row + 1, column=6).value = 0
         tN = time.time()
         t += tO - tN
     tO = time.time()
@@ -222,6 +247,10 @@ def draw_data(image_to_process, boxes, parking_color=(0, 255, 0)):
         x, y, w, h = int(x), int(y), int(w), int(h)
         start = (x, y)
         end = (x + w, y + h)
+        if box[5]:
+            color = (0, 255, 0)
+        else:
+            color = (255, 0, 0)
         image_to_process = cv2.rectangle(image_to_process, start, end, color, width)
         # cv2.imshow('image', image_to_process)
     return image_to_process
