@@ -123,9 +123,10 @@ def delete_shit_in_data():
                 # camera_Pac.cell(row=i, column=4).value = None
                 # camera_Pac.cell(row=i, column=5).value = None
                 # camera_Pac.cell(row=i, column=6).value = None
-                print("One more shit was deleted")
+                print("One more shit was deleted ", camera_Pac.cell(row=i, column=5).value, camera_Pac.cell(row=i, column=6).value)
                 data_base.save("dataBase.xlsx")
-            j += 1
+            else:
+                j += 1
         i += 1
 
 
@@ -143,22 +144,31 @@ def get_data():
 
 
 #Функции для подсчета Intersection over Union (IoU)
-def calculate_iou(box, boxes, box_area, boxes_area, image_to_process):
+def calculate_iou(box):
     #Считаем IoU
     t = 0
-    y1 = np.maximum(box[0], boxes[:, 0])
-    y2 = np.minimum(box[2]+box[0], boxes[:, 2]+boxes[:, 0])
-    x1 = np.maximum(box[1], boxes[:, 1])
-    x2 = np.minimum(box[3]+box[1], boxes[:, 3]+boxes[:, 1])
-    intersection = np.maximum(x2 - x1, 0) * np.maximum(y2 - y1, 0)
-    union = box_area + boxes_area[:] - intersection[:]
-    iou = intersection / union
+
     flag = 1
-    for i in range(2, len(iou)):
-        if iou[i] > 0.6:
+    for i in range(2, camera_Pac.max_row + 1):
+        place = [
+            camera_Pac.cell(row=i, column=1).value,
+            camera_Pac.cell(row=i, column=2).value,
+            camera_Pac.cell(row=i, column=3).value,
+            camera_Pac.cell(row=i, column=4).value
+        ]
+
+
+        y1 = np.maximum(box[0], place[0])
+        y2 = np.minimum(box[2]+box[0], place[2]+place[0])
+        x1 = np.maximum(box[1], place[1])
+        x2 = np.minimum(box[3]+box[1], place[3]+place[1])
+        intersection = np.maximum(x2 - x1, 0) * np.maximum(y2 - y1, 0)
+        union = box[2]*box[3] + place[2]*place[3] - intersection
+        iou = intersection / union
+        if iou > 0.6:
             #draw_two_box(image_to_process, [box, boxes[i]])
             #print(iou[i], box, boxes[i])
-            midle = finde_midle(box, boxes[i])
+            midle = finde_midle(box, place)
             tO = time.time()
             camera_Pac.cell(row=i, column=1).value = midle[0]
             camera_Pac.cell(row=i, column=2).value = midle[1]
@@ -170,9 +180,9 @@ def calculate_iou(box, boxes, box_area, boxes_area, image_to_process):
             t += tO - tN
             data_base.save("dataBase.xlsx")
             flag = 0
-        if iou[i] > 0.2:
-            midle = finde_midle(box, boxes[i])
-            midle = finde_midle(midle, boxes[i])
+        if iou > 0.2:
+            midle = finde_midle(box, place)
+            midle = finde_midle(midle, place)
             camera_Pac.cell(row=i, column=1).value = midle[0]
             camera_Pac.cell(row=i, column=2).value = midle[1]
             camera_Pac.cell(row=i, column=3).value = midle[2]
@@ -183,13 +193,13 @@ def calculate_iou(box, boxes, box_area, boxes_area, image_to_process):
             flag = 0
     if flag:
         tO = time.time()
-        row = camera_Pac.max_row
-        camera_Pac.cell(row=row + 1, column=1).value = box[0]
-        camera_Pac.cell(row=row + 1, column=2).value = box[1]
-        camera_Pac.cell(row=row + 1, column=3).value = box[2]
-        camera_Pac.cell(row=row + 1, column=4).value = box[3]
-        camera_Pac.cell(row=row + 1, column=5).value = 1
-        camera_Pac.cell(row=row + 1, column=6).value = 0
+        row = camera_Pac.max_row + 1
+        camera_Pac.cell(row=row, column=1).value = box[0]
+        camera_Pac.cell(row=row, column=2).value = box[1]
+        camera_Pac.cell(row=row, column=3).value = box[2]
+        camera_Pac.cell(row=row, column=4).value = box[3]
+        camera_Pac.cell(row=row, column=5).value = 1
+        camera_Pac.cell(row=row, column=6).value = 0
         tN = time.time()
         t += tO - tN
     tO = time.time()
@@ -203,19 +213,20 @@ def calculate_iou(box, boxes, box_area, boxes_area, image_to_process):
 def compute_overlaps(boxes1, boxes2, image_to_process):
     #Areas of anchors and GT boxes
     #print(boxes1, "\n", boxes2)
-    area1 = boxes1[:, 2] * boxes1[:, 3]
-    area2 = boxes2[:, 2] * boxes2[:, 3]
-    overlaps = np.zeros((boxes1.shape[0], boxes2.shape[0]))
-    for i in range(overlaps.shape[1]):
-        box2 = boxes2[i]
-        overlaps[:, i] = calculate_iou(box2, boxes1, area2[i], area1, image_to_process)
+    # area1 = boxes1[:, 2] * boxes1[:, 3]
+    # area2 = boxes2[:, 2] * boxes2[:, 3]
+    # overlaps = np.zeros((boxes1.shape[0], boxes2.shape[0]))
+    # for i in range(overlaps.shape[1]):
+    #     box2 = boxes2[i]
+    #     overlaps[:, i] = calculate_iou(box2, boxes1, area2[i], area1, image_to_process)
 
-
-    return overlaps
+    for box in boxes2:
+        calculate_iou(box)
+    return
 
 
 def finde_midle(box1, box2):
-    new_box = [(box1[0] + box2[0]) / 2, (box1[1] + box2[1]) / 2, (box1[2] + box2[2]) / 2, (box1[3] + box2[3]) / 2, box2[4] +1]
+    new_box = [(box1[0] + box2[0]) / 2, (box1[1] + box2[1]) / 2, (box1[2] + box2[2]) / 2, (box1[3] + box2[3]) / 2, 1]
     return new_box
 
 

@@ -24,13 +24,16 @@ def detect(camera, video_path):
     sr.setCameraPac(camera)
     cadr = 5
     video_capture = cv2.VideoCapture(video_path)
+    # video_capture = cv2.VideoCapture("images/record/train.mp4")
     tN = time.time()
     print("Connect camera", tN - tO)
     tO = tN
     while cadr > 0:
         cadr -= 1
         ret, image_to_process = video_capture.read()
-        cv2.imwrite(f'original_images.png', image_to_process)
+        # image_to_process = cv2.imread("images/image214.png")
+        # image_to_process = cv2.imread("images/image234.png")
+        cv2.imwrite(f'original_images.png', draw_red_zone(image_to_process, camera, 1))
         height, width, _ = image_to_process.shape
         if cadr == 4:
             count = len(os.listdir(r"../generateDataset/imgbase")) + 1
@@ -90,7 +93,7 @@ def detect(camera, video_path):
             free_space = []
             overlaps = 0
             if data_boxes and annot_lines:
-                overlaps = sr.compute_overlaps(np.array(data_boxes), np.array(annot_lines), image_to_process)
+                overlaps = sr.compute_overlaps(data_boxes, annot_lines, image_to_process)
             #print(overlaps)
             sr.nexStep()
             print("Update data")
