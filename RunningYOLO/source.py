@@ -77,13 +77,15 @@ def cheсk_not_free_space():
     not_free_space = []
     for i in range(2, camera_Pac.max_row + 1):
         if camera_Pac.cell(row=i, column=6).value == 0:
-            if camera_Pac.cell(row=i, column=1).value and camera_Pac.cell(row=i, column=2).value and camera_Pac.cell(row=i, column=3).value and camera_Pac.cell(row=i, column=4).value:
-                not_free_space.append([camera_Pac.cell(row=i, column=1).value,
-                                    camera_Pac.cell(row=i, column=2).value,
-                                    camera_Pac.cell(row=i, column=3).value,
-                                    camera_Pac.cell(row=i, column=4).value,
-                                    camera_Pac.cell(row=i, column=5).value,
-                                    camera_Pac.cell(row=i, column=6).value])
+            not_free_space.append(
+                [camera_Pac.cell(row=i, column=1).value,
+                camera_Pac.cell(row=i, column=2).value,
+                camera_Pac.cell(row=i, column=3).value,
+                camera_Pac.cell(row=i, column=4).value,
+                camera_Pac.cell(row=i, column=5).value,
+                camera_Pac.cell(row=i, column=6).value]
+            )
+    print(len(not_free_space))
     return not_free_space
 
 
