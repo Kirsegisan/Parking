@@ -79,7 +79,7 @@ def call_detect(update, context):
     update.message.chat.send_chat_action("typing")
     try:
         detect_result = camerasDB.detAnalysisAddresses(update.message.text)
-        update.message.reply_text(f"Я нашел {len(detect_result[1])} свободных мест и {len(detect_result[2])} занятых")
+        update.message.reply_text(f"Я нашел {len(detect_result[1])} свободных мест, {len(detect_result[2])} занятых и в {len(detect_result[3])} в сомневаюсь, не часто там ставят машины")
         cv2.imwrite('./image_test_free.png', detect_result[0])
         files = {'photo': open('./image_test_free.png', 'rb')}
         requests.post(f'{URL}{TOKEN}/sendPhoto?chat_id={update.message.chat_id}', files=files)

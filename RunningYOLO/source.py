@@ -58,35 +58,33 @@ def now_all_space_free():
 
 def cheсk_free_space():
     free_space = []
+    shlak_but_space = []
+    not_free_space = []
     tO = time.time()
     for i in range(2, camera_Pac.max_row + 1):
-        if camera_Pac.cell(row=i, column=6).value == 1:
-            free_space.append([camera_Pac.cell(row=i, column=1).value,
-                                camera_Pac.cell(row=i, column=2).value,
-                                camera_Pac.cell(row=i, column=3).value,
-                                camera_Pac.cell(row=i, column=4).value,
-                                camera_Pac.cell(row=i, column=5).value,
-                                camera_Pac.cell(row=i, column=6).value])
-    print(free_space)
+        place = [
+        camera_Pac.cell(row=i, column=1).value,
+        camera_Pac.cell(row=i, column=2).value,
+        camera_Pac.cell(row=i, column=3).value,
+        camera_Pac.cell(row=i, column=4).value,
+        camera_Pac.cell(row=i, column=5).value,
+        camera_Pac.cell(row=i, column=6).value
+    ]
+        if place[5] == 1 and place[4] > 5:
+            free_space.append(place)
+        elif place[5] == 1 and place[4] <= 5:
+            shlak_but_space.append(place)
+        elif place[5] == 0:
+            not_free_space.append(place)
     tN = time.time()
     print("cheсk_free_space", tN - tO, len(free_space))
-    return free_space
+    return free_space, shlak_but_space, not_free_space
 
 
-def cheсk_not_free_space():
-    not_free_space = []
+def reduced_reliability():
     for i in range(2, camera_Pac.max_row + 1):
-        if camera_Pac.cell(row=i, column=6).value == 0:
-            not_free_space.append(
-                [camera_Pac.cell(row=i, column=1).value,
-                camera_Pac.cell(row=i, column=2).value,
-                camera_Pac.cell(row=i, column=3).value,
-                camera_Pac.cell(row=i, column=4).value,
-                camera_Pac.cell(row=i, column=5).value,
-                camera_Pac.cell(row=i, column=6).value]
-            )
-    print(len(not_free_space))
-    return not_free_space
+        if camera_Pac.cell(row=i, column=6).value == 1:
+            camera_Pac.cell(row=i, column=5).value -= 0.5
 
 
 def same_box(box1, box2):
@@ -154,7 +152,8 @@ def calculate_iou(box):
             camera_Pac.cell(row=i, column=1).value,
             camera_Pac.cell(row=i, column=2).value,
             camera_Pac.cell(row=i, column=3).value,
-            camera_Pac.cell(row=i, column=4).value
+            camera_Pac.cell(row=i, column=4).value,
+            camera_Pac.cell(row=i, column=5).value
         ]
 
 
@@ -181,13 +180,13 @@ def calculate_iou(box):
             data_base.save("dataBase.xlsx")
             flag = 0
         if iou > 0.2:
-            midle = finde_midle(box, place)
-            midle = finde_midle(midle, place)
-            camera_Pac.cell(row=i, column=1).value = midle[0]
-            camera_Pac.cell(row=i, column=2).value = midle[1]
-            camera_Pac.cell(row=i, column=3).value = midle[2]
-            camera_Pac.cell(row=i, column=4).value = midle[3]
-            camera_Pac.cell(row=i, column=5).value = midle[4]
+            # midle = finde_midle(box, place)
+            # midle = finde_midle(midle, place)
+            # camera_Pac.cell(row=i, column=1).value = midle[0]
+            # camera_Pac.cell(row=i, column=2).value = midle[1]
+            # camera_Pac.cell(row=i, column=3).value = midle[2]
+            # camera_Pac.cell(row=i, column=4).value = midle[3]
+            # camera_Pac.cell(row=i, column=5).value = midle[4]
             camera_Pac.cell(row=i, column=6).value = 0
             data_base.save("dataBase.xlsx")
             flag = 0
@@ -226,7 +225,7 @@ def compute_overlaps(boxes1, boxes2, image_to_process):
 
 
 def finde_midle(box1, box2):
-    new_box = [(box1[0] + box2[0]) / 2, (box1[1] + box2[1]) / 2, (box1[2] + box2[2]) / 2, (box1[3] + box2[3]) / 2, 1]
+    new_box = [(box1[0] + box2[0]) / 2, (box1[1] + box2[1]) / 2, (box1[2] + box2[2]) / 2, (box1[3] + box2[3]) / 2, box2[4] + 1]
     return new_box
 
 
@@ -260,8 +259,10 @@ def draw_data(image_to_process, boxes, parking_color=(0, 255, 0)):
         x, y, w, h = int(x), int(y), int(w), int(h)
         start = (x, y)
         end = (x + w, y + h)
-        if box[5]:
+        if box[5] and box[5] > 5:
             color = (0, 255, 0)
+        elif box[5] and box[4] <= 5:
+            color = (0, 165, 255)
         else:
             color = (255, 0, 0)
         image_to_process = cv2.rectangle(image_to_process, start, end, color, width)

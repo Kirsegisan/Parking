@@ -22,7 +22,7 @@ def detect(camera, video_path):
     tO = time.time()
     print(camera, video_path)
     sr.setCameraPac(camera)
-    cadr = 5
+    cadr = 1
     video_capture = cv2.VideoCapture(video_path)
     # video_capture = cv2.VideoCapture("images/record/train.mp4")
     tN = time.time()
@@ -35,7 +35,7 @@ def detect(camera, video_path):
         # image_to_process = cv2.imread("images/image234.png")
         cv2.imwrite(f'original_images.png', draw_red_zone(image_to_process, camera, 1))
         height, width, _ = image_to_process.shape
-        if cadr == 4:
+        if cadr == 0:
             count = len(os.listdir(r"../generateDataset/imgbase")) + 1
             cv2.imwrite(f'../generateDataset/imgbase/image{count}.png', image_to_process)
             print(f"Images{count} is saved")
@@ -48,6 +48,7 @@ def detect(camera, video_path):
         annotated_image = results[0].plot()  # <-- Используем .plot() для визуализации
 
         # show_image(annotated_image)
+        cv2.imwrite(f'../generateDataset/imgPredict/image{count}.png', annotated_image)
 
         tN = time.time()
         print("Detect images", tN - tO)
@@ -102,17 +103,18 @@ def detect(camera, video_path):
             tO = tN
             #sr.draw_bbox(data_boxes[0], "test", image_to_process)
     #cv2.imshow('image', sr.draw_data(image_to_process))
-    sr.delete_shit_in_data()
+    # sr.delete_shit_in_data()
     # cv2.imshow('image', sr.draw_data(image_to_process, sr.chek_free_space()))
     # cv2.waitKey(0)
-    free_space = sr.cheсk_free_space()
-    not_free_space = sr.cheсk_not_free_space()
+    free_space, shlak, not_free_space = sr.cheсk_free_space()
+    sr.reduced_reliability()
     print("Complite detect")
     foto = sr.draw_data(cv2.imread("original_images.png"), sr.get_data(), (0, 0, 255))
     tN = time.time()
     print("Rendering", tN - tO)
     tO = tN
-    return foto, free_space, not_free_space
+    cv2.imwrite(f'../generateDataset/imgItog/image{count}.png', foto)
+    return foto, free_space, not_free_space, shlak
         #cv2.waitKey(0)
 
 
