@@ -82,9 +82,13 @@ def cheсk_free_space():
 
 
 def reduced_reliability():
-    for i in range(2, camera_Pac.max_row + 1):
+    i = camera_Pac.max_row
+    while i > 0:
         if camera_Pac.cell(row=i, column=6).value == 1:
             camera_Pac.cell(row=i, column=5).value -= 0.5
+            if camera_Pac.cell(row=i, column=5).value < 0:
+                camera_Pac.delete_rows(i)
+        i -= 1
 
 
 def same_box(box1, box2):
