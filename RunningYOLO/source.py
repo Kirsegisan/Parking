@@ -263,13 +263,14 @@ def draw_data(image_to_process, boxes, parking_color=(0, 255, 0)):
         x, y, w, h = int(x), int(y), int(w), int(h)
         start = (x, y)
         end = (x + w, y + h)
-        if box[5] and box[5] > 5:
+        if box[5] and box[4] > 5:
             color = (0, 255, 0)
+            image_to_process = cv2.rectangle(image_to_process, start, end, color, width)
         elif box[5] and box[4] <= 5:
             color = (0, 165, 255)
         else:
             color = (255, 0, 0)
-        image_to_process = cv2.rectangle(image_to_process, start, end, color, width)
+
         # cv2.imshow('image', image_to_process)
     return image_to_process
 
