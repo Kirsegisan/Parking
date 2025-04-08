@@ -32,9 +32,21 @@ class User:
     def getUserCameras(self):
         userCameras = []
         for i in range(1, self.userSheet.max_row + 1):
-            userCameras[self.userSheet.cell(row=self.userSheet.max_row + 1, column=1).value] = \
-                self.userSheet.cell(row=self.userSheet.max_row + 1, column=2).value
+            userCameras.append(self.userSheet.cell(row=i, column=2).value)
         return userCameras
+
+    def getUserCameraID(self, name):
+        for i in range(1, self.userSheet.max_row + 1):
+            if self.userSheet.cell(row=i, column=2).value == name:
+                return self.userSheet.cell(row=i, column=1).value
+
+    def getUserAddresses(self):
+        inData = self.getUserCameras()
+        outData = []
+        for i in range(len(inData)):
+            if inData[i]:
+                outData.append([inData[i]])
+        return outData
 
 
 def userInDB(userID):

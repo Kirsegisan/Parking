@@ -4,6 +4,10 @@ import app
 usersFile = load_workbook("Cameras.xlsx")
 
 
+def getAddressesList():
+    return usersFile.get_sheet_names()
+
+
 def getAddressesString():
     addresses = usersFile.get_sheet_names()
     result = ''

@@ -149,7 +149,8 @@ def get_data():
 def calculate_iou(box):
     #Считаем IoU
     t = 0
-
+    totalIOU = 0
+    maxIOU = 0
     flag = 1
     for i in range(2, camera_Pac.max_row + 1):
         place = [
@@ -168,9 +169,8 @@ def calculate_iou(box):
         intersection = np.maximum(x2 - x1, 0) * np.maximum(y2 - y1, 0)
         union = box[2]*box[3] + place[2]*place[3] - intersection
         iou = intersection / union
+        totalIOU += iou
         if iou > 0.6:
-            #draw_two_box(image_to_process, [box, boxes[i]])
-            #print(iou[i], box, boxes[i])
             midle = finde_midle(box, place)
             tO = time.time()
             camera_Pac.cell(row=i, column=1).value = midle[0]
@@ -184,16 +184,16 @@ def calculate_iou(box):
             data_base.save("dataBase.xlsx")
             flag = 0
         if iou > 0.2:
-            # midle = finde_midle(box, place)
-            # midle = finde_midle(midle, place)
-            # camera_Pac.cell(row=i, column=1).value = midle[0]
-            # camera_Pac.cell(row=i, column=2).value = midle[1]
-            # camera_Pac.cell(row=i, column=3).value = midle[2]
-            # camera_Pac.cell(row=i, column=4).value = midle[3]
-            # camera_Pac.cell(row=i, column=5).value = midle[4]
             camera_Pac.cell(row=i, column=6).value = 0
             data_base.save("dataBase.xlsx")
             flag = 0
+        else:
+            if not camera_Pac.cell(row=i, column=7).value:
+                camera_Pac.cell(row=i, column=7).value = 0
+            elif camera_Pac.cell(row=i, column=7).value + iou > 0.2:
+                camera_Pac.cell(row=i, column=6).value = 0
+            camera_Pac.cell(row=i, column=7).value += iou
+            data_base.save("dataBase.xlsx")
     if flag:
         tO = time.time()
         row = camera_Pac.max_row + 1
@@ -222,10 +222,16 @@ def compute_overlaps(boxes1, boxes2, image_to_process):
     # for i in range(overlaps.shape[1]):
     #     box2 = boxes2[i]
     #     overlaps[:, i] = calculate_iou(box2, boxes1, area2[i], area1, image_to_process)
-
+    setIOU()
     for box in boxes2:
         calculate_iou(box)
     return
+
+
+def setIOU():
+    for i in range(2, camera_Pac.max_row + 1):
+        camera_Pac.cell(row=i, column=7).value = None
+    data_base.save("dataBase.xlsx")
 
 
 def finde_midle(box1, box2):

@@ -32,7 +32,7 @@ def main():
         entry_points=[MessageHandler(Filters.text("add"), addStart)],
         states={
             WAIT_Address: [MessageHandler(Filters.text, addName)],
-            WAIT_Name: [MessageHandler(Filters.text, addEnd)],
+            WAIT_Name: [MessageHandler(Filters.text, addEnd)]
         },
         fallbacks=[]
     )
@@ -112,13 +112,18 @@ def echo(update, context):
         text = update.message.text
         chatID = update.message.chat_id
         name = update.message.from_user.name
-        update.message.reply_text(
-            text="Я не понял команду, вот доступные адреса",
-            reply_markup=ReplyKeyboardMarkup(
-                camerasDB.getAddresses(),
-                resize_keyboard=True
+        user = usersDB.User(update.message.chat_id)
+        if text in user.getUserCameras():
+            update.message.text = user.getUserCameraID(text)
+            return call_detect(update, context)
+        else:
+            update.message.reply_text(
+                text="Я не понял команду, вот доступные адреса",
+                reply_markup=ReplyKeyboardMarkup(
+                    camerasDB.getAddresses(),
+                    resize_keyboard=True
+                )
             )
-        )
     else:
         meat(update, context)
     return
@@ -149,31 +154,52 @@ def meat(update, context):
 def addAddress(update, context):
     if usersDB.userInDB(update.message.chat_id):
         user = usersDB.User(update.message.chat_id)
-        user.addACameraIDToTheUser(update.message.text)
+        update.message.reply_text(
+            text="Какой адрес вы хотите добавить в список избранных?",
+            reply_markup=ReplyKeyboardMarkup(
+                camerasDB.getAddresses(),
+                resize_keyboard=True
+            )
+        )
+        # message = update.message.text
+        # if message in camerasDB.getAddresses():
+        #     user.addACameraIDToTheUser(message)
+        # else:
+        #     return addError(update, context)
 
     return WAIT_Address
 
 
-def addError(update,):
-    update.message.reply_text(f"Я такого адресса не знаю")
+def addError(update, context):
+    update.message.reply_text(f"Я такого адреса не знаю")
     return ConversationHandler.END
 
 
 def addName(update, context):
     user = usersDB.User(update.message.chat_id)
-    user.addACameraIDToTheUser(update.message.text)
+    message = update.message.text
+    if message in camerasDB.getAddressesList():
+        user.addACameraIDToTheUser(message)
+    else:
+        return addError(update, context)
     return WAIT_Name
 
 
 def addEnd(update, context):
     user = usersDB.User(update.message.chat_id)
     user.addCameraNameToTheUser(update.message.text)
-    update.message.reply_text(f"Адресс добавлен")
+    update.message.reply_text(
+        text="Адресс добавлен",
+        reply_markup=ReplyKeyboardMarkup(
+            user.getUserAddresses(),
+            resize_keyboard=True
+        )
+    )
     return ConversationHandler.END
 
 
 def addStart(update, context):
-    update.message.reply_text(f"Что добавить")
+    update.message.reply_text(f"(Правила добавления)")
     return addAddress(update, context)
 
 
