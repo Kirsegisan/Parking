@@ -115,7 +115,7 @@ async def get_user_addresses(user_id: int) -> dict:
         result = await cursor.fetchone()
         if result and result[0]:
             addresses = json.loads(result[0])
-            return {k: v for k, v in addresses.items()}
+            return {str(k): v for k, v in addresses.items()}
         else:
             return {}
 
@@ -143,27 +143,18 @@ async def delete_user_address(user_id: int, address_name: str) -> None:
 
 async def save_user_address(
         user_id: int, address_original: str, address_name: str) -> None:
-    """Сохраняет адрес пользователя.
-    user_id - идентификатор пользователя.
-    address_original - оригинальный адрес.
-    address_name - название адреса.
-    """
     async with aiosqlite.connect('core/databases/users.db') as db:
         cursor = await db.execute(
             'SELECT addresses FROM users WHERE user_id = ?', (user_id,)
         )
         result = await cursor.fetchone()
-        if result and result[0]:
-            addresses = json.loads(result[0])
-        else:
-            addresses = {}
+        addresses = json.loads(result[0]) if result and result[0] else {}
 
         addresses[address_original] = address_name
-        addresses_json = json.dumps(addresses)
 
         await db.execute(
-            'UPDATE users SET addresses = ? WHERE user_id = ?',
-            (addresses_json, user_id)
+            'INSERT OR REPLACE INTO users (user_id, addresses) VALUES (?, ?)',
+            (user_id, json.dumps(addresses))
         )
         await db.commit()
 

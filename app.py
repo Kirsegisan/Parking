@@ -36,8 +36,8 @@ def detect(camera, video_path):
         cv2.imwrite(f'original_images.png', draw_red_zone(image_to_process, camera, 1))
         height, width, _ = image_to_process.shape
         if cadr == 0:
-            count = len(os.listdir(r"../generateDataset/imgbase")) + 1
-            cv2.imwrite(f'../generateDataset/imgbase/image{count}.png', image_to_process)
+            count = len(os.listdir(r"generateDataset/imgbase")) + 1
+            cv2.imwrite(f'generateDataset/imgbase/image{count}.png', image_to_process)
             print(f"Images{count} is saved")
         blob = cv2.dnn.blobFromImage(image_to_process, 1 / 255, (320, 320),
                                      (0, 0, 0), swapRB=True, crop=False)
@@ -48,7 +48,7 @@ def detect(camera, video_path):
         annotated_image = results[0].plot()  # <-- Используем .plot() для визуализации
 
         # show_image(annotated_image)
-        cv2.imwrite(f'../generateDataset/imgPredict/image{count}.png', annotated_image)
+        cv2.imwrite(f'generateDataset/imgPredict/image{count}.png', annotated_image)
 
         tN = time.time()
         print("Detect images", tN - tO)
@@ -113,7 +113,7 @@ def detect(camera, video_path):
     tN = time.time()
     print("Rendering", tN - tO)
     tO = tN
-    cv2.imwrite(f'../generateDataset/imgItog/image{count}.png', foto)
+    cv2.imwrite(f'generateDataset/imgItog/image{count}.png', foto)
     return foto, free_space, not_free_space, shlak
         #cv2.waitKey(0)
 

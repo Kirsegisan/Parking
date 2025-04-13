@@ -1,20 +1,16 @@
 import locale
+import conetcToCamerasDataBase
 
-ADMIN_ID = [123123123, 321321321]
-BOT_TOKEN = '5285866637:AAE-EbkvJJd_p4gaX9Z8x2n7R42NXRmCSkA'
+ADMIN_ID = 1974355978
+BOT_TOKEN = '7962713583:AAEZOrcnhpT1vER-5aAmywxim3qQ7NsrtLY'
 
 locale.setlocale(locale.LC_COLLATE, 'ru_RU.UTF-8')
 
-ALL_ADDRESSES = {  # Ключ - адрес. Значение - путь до фотографии
-    'Казань, ул. Пушкина, д. 1': 'core/photos/kazan.jpg',
-    'Москва, ул. Ленина, д. 1': 'core/photos/moscow.jpg',
-    'Санкт-Петербург, ул. Пушкина, д. 2': 'core/photos/spb.jpg',
-    'Астрахань, ул. Гагарина, д. 3': 'core/photos/astra.jpg',
-}
+ADDRESSES = conetcToCamerasDataBase.getAddresses()
 
-ADDRESSES = dict(sorted(
-    ALL_ADDRESSES.items(), key=lambda item: locale.strxfrm(item[0]))
-)
+# ADDRESSES = dict(sorted(
+#     ALL_ADDRESSES.items(), key=lambda item: locale.strxfrm(item[0]))
+# )
 
 PAYMENTS = {  # Ключ - сумма. Значение - количество дней
     '100': 30,

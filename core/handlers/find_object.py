@@ -6,6 +6,9 @@ from keyboards.main_kb import short_menu_buttons
 from settings import ADDRESSES
 from utils.users_db import get_user_addresses
 
+import conetcToCamerasDataBase
+import cv2
+
 find_object_router = Router()
 
 
@@ -32,9 +35,10 @@ async def find_object(call: CallbackQuery):
 @find_object_router.callback_query(F.data.startswith('info_'))
 async def select_object(call: CallbackQuery):
     select = call.data.split('_')[1]
-    image = ADDRESSES[select]
+    detect_result = conetcToCamerasDataBase.detAnalysisAddresses(select)
+    cv2.imwrite('./image_test_free.png', detect_result[0])
     await call.message.answer_photo(
-        FSInputFile(image),
+        FSInputFile('./image_test_free.png'),
         caption=f'Вы выбрали объект {select}'
     )
     await call.message.answer(

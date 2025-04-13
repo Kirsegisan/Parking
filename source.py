@@ -8,6 +8,26 @@ camera_Pac = []
 camera_count = 1
 
 
+class Place:
+    def __init__(self, x, y, h, w, count, status, iou=None):
+        self.x, self.y, self.h, self.w, self.status, self.count, self.iou = x, y, h, w, status, count, iou
+
+    def get(self):
+        return [self.x, self.y, self.h, self.w, self.count, self.status]
+
+    def set(self, place, status, iou):
+        self.x, self.y, self.h, self.w, self.count, self.status, self.iou = place[0], place[1], place[2], place[3], place[4], status, iou
+
+    def load(self, i):
+        camera_Pac.cell(row=i, column=1).value = self.x
+        camera_Pac.cell(row=i, column=2).value = self.y
+        camera_Pac.cell(row=i, column=3).value = self.h
+        camera_Pac.cell(row=i, column=4).value = self.w
+        camera_Pac.cell(row=i, column=5).value = self.count
+        camera_Pac.cell(row=i, column=6).value = self.status
+        camera_Pac.cell(row=i, column=7).value = self.iou
+
+
 def nexStep():
     camera_Pac.cell(row=1, column=1).value += 1
     data_base.save("dataBase.xlsx")
@@ -62,20 +82,20 @@ def cheсk_free_space():
     not_free_space = []
     tO = time.time()
     for i in range(2, camera_Pac.max_row + 1):
-        place = [
-        camera_Pac.cell(row=i, column=1).value,
-        camera_Pac.cell(row=i, column=2).value,
-        camera_Pac.cell(row=i, column=3).value,
-        camera_Pac.cell(row=i, column=4).value,
-        camera_Pac.cell(row=i, column=5).value,
-        camera_Pac.cell(row=i, column=6).value
-    ]
-        if place[5] == 1 and place[4] > 5:
-            free_space.append(place)
-        elif place[5] == 1 and place[4] <= 5:
-            shlak_but_space.append(place)
-        elif place[5] == 0:
-            not_free_space.append(place)
+        place = Place(
+            camera_Pac.cell(row=i, column=1).value,
+            camera_Pac.cell(row=i, column=2).value,
+            camera_Pac.cell(row=i, column=3).value,
+            camera_Pac.cell(row=i, column=4).value,
+            camera_Pac.cell(row=i, column=5).value,
+            camera_Pac.cell(row=i, column=6).value
+        )
+        if place.status == 1 and place.count > 5:
+            free_space.append(place.get())
+        elif place.status == 1 and place.count <= 5:
+            shlak_but_space.append(place.get())
+        elif place.status == 0:
+            not_free_space.append(place.get())
     tN = time.time()
     print("cheсk_free_space", tN - tO, len(free_space))
     return free_space, shlak_but_space, not_free_space
@@ -109,7 +129,7 @@ def delete_shit_in_data():
                 camera_Pac.cell(row=i, column=2).value,
                 camera_Pac.cell(row=i, column=3).value,
                 camera_Pac.cell(row=i, column=4).value
-                    ]
+            ]
             box2 = [
                 camera_Pac.cell(row=j, column=1).value,
                 camera_Pac.cell(row=j, column=2).value,
@@ -125,7 +145,8 @@ def delete_shit_in_data():
                 # camera_Pac.cell(row=i, column=4).value = None
                 # camera_Pac.cell(row=i, column=5).value = None
                 # camera_Pac.cell(row=i, column=6).value = None
-                print("One more shit was deleted ", camera_Pac.cell(row=i, column=5).value, camera_Pac.cell(row=i, column=6).value)
+                print("One more shit was deleted ", camera_Pac.cell(row=i, column=5).value,
+                      camera_Pac.cell(row=i, column=6).value)
                 data_base.save("dataBase.xlsx")
             else:
                 j += 1
@@ -145,57 +166,51 @@ def get_data():
     return boxes
 
 
-#Функции для подсчета Intersection over Union (IoU)
+# Функции для подсчета Intersection over Union (IoU)
 def calculate_iou(box):
-    #Считаем IoU
+    # Считаем IoU
     t = 0
     totalIOU = 0
     maxIOU = 0
     flag = 1
     for i in range(2, camera_Pac.max_row + 1):
-        place = [
+        place = Place(
             camera_Pac.cell(row=i, column=1).value,
             camera_Pac.cell(row=i, column=2).value,
             camera_Pac.cell(row=i, column=3).value,
             camera_Pac.cell(row=i, column=4).value,
-            camera_Pac.cell(row=i, column=5).value
-        ]
+            camera_Pac.cell(row=i, column=5).value,
+            camera_Pac.cell(row=i, column=6).value,
+            camera_Pac.cell(row=i, column=7).value
+        )
 
-
-        y1 = np.maximum(box[0], place[0])
-        y2 = np.minimum(box[2]+box[0], place[2]+place[0])
-        x1 = np.maximum(box[1], place[1])
-        x2 = np.minimum(box[3]+box[1], place[3]+place[1])
+        y1 = np.maximum(box[0], place.x)
+        y2 = np.minimum(box[2] + box[0], place.h + place.x)
+        x1 = np.maximum(box[1], place.y)
+        x2 = np.minimum(box[3] + box[1], place.w + place.y)
         intersection = np.maximum(x2 - x1, 0) * np.maximum(y2 - y1, 0)
-        union = box[2]*box[3] + place[2]*place[3] - intersection
+        union = box[2] * box[3] + place.h * place.w - intersection
         iou = intersection / union
         totalIOU += iou
         if iou > 0.6:
-            midle = finde_midle(box, place)
+            midle = finde_midle(box, place.get())
             tO = time.time()
-            camera_Pac.cell(row=i, column=1).value = midle[0]
-            camera_Pac.cell(row=i, column=2).value = midle[1]
-            camera_Pac.cell(row=i, column=3).value = midle[2]
-            camera_Pac.cell(row=i, column=4).value = midle[3]
-            camera_Pac.cell(row=i, column=5).value = midle[4]
-            camera_Pac.cell(row=i, column=6).value = 0
+            place.set(midle, 0, place.iou)
             tN = time.time()
             t += tO - tN
-            data_base.save("dataBase.xlsx")
             flag = 0
         if iou > 0.2:
-            camera_Pac.cell(row=i, column=6).value = 0
-            data_base.save("dataBase.xlsx")
+            place.status = 0
             flag = 0
         else:
-            if not camera_Pac.cell(row=i, column=7).value:
-                camera_Pac.cell(row=i, column=7).value = 0
-            elif camera_Pac.cell(row=i, column=7).value + iou > 0.2:
-                camera_Pac.cell(row=i, column=6).value = 0
-            camera_Pac.cell(row=i, column=7).value += iou
-            data_base.save("dataBase.xlsx")
+            if not place.iou:
+                place.iou = 0
+            elif place.iou + iou > 0.2:
+                place.status = 0
+            place.iou += iou
+        place.load(i)
+
     if flag:
-        tO = time.time()
         row = camera_Pac.max_row + 1
         camera_Pac.cell(row=row, column=1).value = box[0]
         camera_Pac.cell(row=row, column=2).value = box[1]
@@ -203,19 +218,14 @@ def calculate_iou(box):
         camera_Pac.cell(row=row, column=4).value = box[3]
         camera_Pac.cell(row=row, column=5).value = 1
         camera_Pac.cell(row=row, column=6).value = 0
-        tN = time.time()
-        t += tO - tN
-    tO = time.time()
     data_base.save("dataBase.xlsx")
-    tN = time.time()
-    t += tO - tN
-    #print("iou", t)
     return iou
 
-#Функция для расчета персечения всех со всеми через IoU
+
+# Функция для расчета персечения всех со всеми через IoU
 def compute_overlaps(boxes1, boxes2, image_to_process):
-    #Areas of anchors and GT boxes
-    #print(boxes1, "\n", boxes2)
+    # Areas of anchors and GT boxes
+    # print(boxes1, "\n", boxes2)
     # area1 = boxes1[:, 2] * boxes1[:, 3]
     # area2 = boxes2[:, 2] * boxes2[:, 3]
     # overlaps = np.zeros((boxes1.shape[0], boxes2.shape[0]))
@@ -235,7 +245,8 @@ def setIOU():
 
 
 def finde_midle(box1, box2):
-    new_box = [(box1[0] + box2[0]) / 2, (box1[1] + box2[1]) / 2, (box1[2] + box2[2]) / 2, (box1[3] + box2[3]) / 2, box2[4] + 1]
+    new_box = [(box1[0] + box2[0]) / 2, (box1[1] + box2[1]) / 2, (box1[2] + box2[2]) / 2, (box1[3] + box2[3]) / 2,
+               box2[4] + 1]
     return new_box
 
 
@@ -271,12 +282,12 @@ def draw_data(image_to_process, boxes, parking_color=(0, 255, 0)):
         end = (x + w, y + h)
         if box[5] and box[4] > 5:
             color = (0, 255, 0)
-            image_to_process = cv2.rectangle(image_to_process, start, end, color, width)
+
         elif box[5] and box[4] <= 5:
             color = (0, 165, 255)
         else:
             color = (255, 0, 0)
-
+        image_to_process = cv2.rectangle(image_to_process, start, end, color, width)
         # cv2.imshow('image', image_to_process)
     return image_to_process
 
@@ -284,13 +295,13 @@ def draw_data(image_to_process, boxes, parking_color=(0, 255, 0)):
 def draw_two_box(image_to_process, boxes):
     final_image = image_to_process
     for box in boxes:
-        #print(box)
+        # print(box)
         x, y, w, h = box[0], box[1], box[2], box[3]
         start = (x, y)
         end = (x + w, y + h)
         color = (0, 255, 0)
         width = 2
-        #final_image = cv2.rectangle(final_image, start, end, color, width)
+        # final_image = cv2.rectangle(final_image, start, end, color, width)
         cv2.imshow('image', cv2.rectangle(final_image, start, end, color, width))
-    #cv2.imshow('image', image_to_process)
+    # cv2.imshow('image', image_to_process)
     cv2.waitKey(0)
