@@ -153,8 +153,8 @@ async def save_user_address(
         addresses[address_original] = address_name
 
         await db.execute(
-            'INSERT OR REPLACE INTO users (user_id, addresses) VALUES (?, ?)',
-            (user_id, json.dumps(addresses))
+            'UPDATE users SET addresses = ? WHERE user_id = ?',
+            (json.dumps(addresses), user_id)
         )
         await db.commit()
 
