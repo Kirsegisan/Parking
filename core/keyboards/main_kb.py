@@ -15,6 +15,12 @@ MAIN_CHOOSE_BUTTONS = (
 )
 
 
+def payment_check_kb():
+    builder = InlineKeyboardBuilder()
+    builder.button(text="🔍 Проверить оплату", callback_data="check_payment")
+    return builder.as_markup()
+
+
 def start_button():
     kb = InlineKeyboardBuilder()
     kb.button(text='🚀 ПРИСОЕДИНИТЬСЯ', callback_data='start_bot')

@@ -8,7 +8,7 @@ from RedZoneConvert import draw_red_zone
 import numpy as np
 import matplotlib.pyplot as plt  # <-- Добавлено
 
-model = YOLO('../YOLO-weights/best_v36.pt')
+model = YOLO('YOLO-weights/best_v36.pt')
 
 def show_image(image):
     plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))  # Конвертация BGR в RGB

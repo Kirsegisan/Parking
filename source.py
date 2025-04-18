@@ -82,20 +82,20 @@ def cheсk_free_space():
     not_free_space = []
     tO = time.time()
     for i in range(2, camera_Pac.max_row + 1):
-        place = Place(
+        place = [
             camera_Pac.cell(row=i, column=1).value,
             camera_Pac.cell(row=i, column=2).value,
             camera_Pac.cell(row=i, column=3).value,
             camera_Pac.cell(row=i, column=4).value,
             camera_Pac.cell(row=i, column=5).value,
             camera_Pac.cell(row=i, column=6).value
-        )
-        if place.status == 1 and place.count > 5:
-            free_space.append(place.get())
-        elif place.status == 1 and place.count <= 5:
-            shlak_but_space.append(place.get())
-        elif place.status == 0:
-            not_free_space.append(place.get())
+        ]
+        if place[5] == 1 and place[4] > 5:
+            free_space.append(place)
+        elif place[5] == 1 and place[4] <= 5:
+            shlak_but_space.append(place)
+        elif place[5] == 0:
+            not_free_space.append(place)
     tN = time.time()
     print("cheсk_free_space", tN - tO, len(free_space))
     return free_space, shlak_but_space, not_free_space
@@ -199,13 +199,13 @@ def calculate_iou(box):
             tN = time.time()
             t += tO - tN
             flag = 0
-        if iou > 0.2:
+        if iou > 0.15:
             place.status = 0
             flag = 0
         else:
             if not place.iou:
                 place.iou = 0
-            elif place.iou + iou > 0.2:
+            elif place.iou + iou > 0.15:
                 place.status = 0
             place.iou += iou
         place.load(i)

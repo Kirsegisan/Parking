@@ -11,8 +11,14 @@ import source as sr
 import conectToUserDataBase as usersDB
 import conetcToCamerasDataBase as camerasDB
 import traceback
+from exportDB import export_sqlite_to_xlsx
 
 # -*- coding: utf-8 -*-
+
+# Список баз данных для экспорта
+db_files = ['referrals.db', 'subscriptions.db', 'users.db']
+# Название выходного файла
+output_file = 'exported_data.xlsx'
 
 URL = 'https://api.telegram.org/bot'
 papaChatID = 1974355978
@@ -26,6 +32,7 @@ def main():
     )
 
     dispatcher = updater.dispatcher
+    exportDB = MessageHandler(Filters.text("exportDB"), exportDataBase)
     papa_hendler = MessageHandler(Filters.text("Hi"), meat_papa)
     meatHendler = MessageHandler(Filters.text("/start"), meat)
     addHendler = ConversationHandler(
@@ -43,6 +50,7 @@ def main():
     echoHandler = MessageHandler(Filters.all, echo)
 
     #dispatcher.add_handler(papa_hendler)
+    dispatcher.add_handler(exportDB)
     dispatcher.add_handler(meatHendler)
     dispatcher.add_handler(addHendler)
     dispatcher.add_handler(keyboardHandler)
@@ -209,6 +217,50 @@ def addStart(update, context):
 #         print("")
 #         time.sleep(20*60)
 
+
+def exportDataBase(update, context):
+    export_and_send_xlsx(TOKEN, update.message.chat_id, db_files)
+
+
+def export_and_send_xlsx(
+        bot_token: str,
+        chat_id: str,
+        db_files: list,
+        temp_xlsx: str = "exported_data.xlsx"
+) -> bool:
+    """
+    Экспортирует SQLite базы в XLSX и отправляет файл в Telegram чат.
+
+    Параметры:
+        bot_token (str): Токен вашего бота (например, "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11")
+        chat_id (str): ID чата (можно получить из update.message.chat_id)
+        db_files (list): Список путей к файлам БД (например, ["referrals.db", "subscriptions.db"])
+        temp_xlsx (str): Временный файл для экспорта (по умолчанию "exported_data.xlsx")
+
+    Возвращает:
+        bool: True если отправка успешна, False при ошибке.
+    """
+    try:
+        # 1. Создаем XLSX-файл
+        export_sqlite_to_xlsx(db_files, temp_xlsx)
+        # 2. Отправка через Telegram API
+        url = f"https://api.telegram.org/bot{bot_token}/sendDocument"
+        with open(temp_xlsx, "rb") as file:
+            files = {"document": file}
+            data = {"chat_id": chat_id}
+            response = requests.post(url, files=files, data=data)
+        os.remove(temp_xlsx)
+        # 3. Проверяем успешность
+        if response.status_code == 200:
+            print("Файл успешно отправлен!")
+            return True
+        else:
+            print(f"Ошибка при отправке: {response.json()}")
+            return False
+
+    except Exception as e:
+        print(f"⚠️ Ошибка: {str(e)}")
+        return False
 
 
 if __name__ == '__main__':
