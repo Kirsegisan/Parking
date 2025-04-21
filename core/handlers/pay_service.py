@@ -42,6 +42,7 @@ async def create_payment(call: CallbackQuery, state: FSMContext):
     amount = call.data.split('_')[1]
     payment = Payment.create({
         "amount": {"value": amount, "currency": "RUB"},
+        "capture": True,
         "confirmation": {"type": "redirect", "return_url": "https://t.me/your_bot"},
         "description": f"Подписка на {PAYMENTS[amount]} дней",
         "metadata": {"user_id": call.from_user.id}
@@ -50,6 +51,7 @@ async def create_payment(call: CallbackQuery, state: FSMContext):
     await state.update_data(payment_id=payment.id, amount=amount)
     await call.message.edit_text(
         f"Оплатите {amount} руб: {payment.confirmation.confirmation_url}",
+        show_alert=True,
         reply_markup=payment_check_kb()
     )
 
@@ -58,7 +60,8 @@ async def create_payment(call: CallbackQuery, state: FSMContext):
 async def verify_payment(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     payment = Payment.find_one(data['payment_id'])
-
+    print(f"Данные state: {await state.get_data()}")  # Проверьте, есть ли payment_id
+    print(f"Платеж: {payment.status}")  # Что возвращает ЮKassa?
     if payment.status == 'succeeded':
         new_date = (datetime.now() + timedelta(days=PAYMENTS[data['amount']])).strftime("%d.%m.%Y")
         await call.message.edit_text(
@@ -68,4 +71,4 @@ async def verify_payment(call: CallbackQuery, state: FSMContext):
     else:
         await call.answer("Платеж не найден", show_alert=True)
 
-    await state.clear()
+    await state.update_data(payment_id=payment.id)

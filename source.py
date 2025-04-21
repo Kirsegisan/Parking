@@ -97,7 +97,7 @@ def cheсk_free_space():
         elif place[5] == 0:
             not_free_space.append(place)
     tN = time.time()
-    print("cheсk_free_space", tN - tO, len(free_space))
+    print("cheсk_free_space", tN - tO, i)
     return free_space, shlak_but_space, not_free_space
 
 

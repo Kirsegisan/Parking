@@ -18,5 +18,5 @@ PAYMENTS = {  # Ключ - сумма. Значение - количество �
     '300': 90,
 }
 
-YOOKASSA_SHOP_ID = "123456"  # Например 123456
-YOOKASSA_SECRET_KEY = "test_ваш_тестовый_ключ"   # Или test_ключ для тестов
+YOOKASSA_SHOP_ID = "1075018"  # Например 123456
+YOOKASSA_SECRET_KEY = "test_Xq9NQyenjvGZQcJkdVrixWKuush9D3qu7s40KCXqSAk"   # Или test_ключ для тестов
