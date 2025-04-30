@@ -59,11 +59,20 @@ async def create_payment(call: CallbackQuery, state: FSMContext):
 @pay_service_router.callback_query(F.data == 'check_payment')
 async def verify_payment(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
+    subscription_cost = data['amount']
     payment = Payment.find_one(data['payment_id'])
     print(f"Данные state: {await state.get_data()}")  # Проверьте, есть ли payment_id
     print(f"Платеж: {payment.status}")  # Что возвращает ЮKassa?
+    logger.info(f'Пользователь {call.from_user.id} оплатил подписку')
     if payment.status == 'succeeded':
+        await record_subscription(
+            call.from_user.id,
+            datetime.now(),
+            subscription_cost,
+            PAYMENTS[subscription_cost]
+        )
         new_date = (datetime.now() + timedelta(days=PAYMENTS[data['amount']])).strftime("%d.%m.%Y")
+        await set_user_expired_date(call.from_user.id, new_date)
         await call.message.edit_text(
             f"✅ Подписка активна до {new_date}",
             reply_markup=back_to_main_kb()

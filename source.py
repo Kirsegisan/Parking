@@ -80,8 +80,9 @@ def cheсk_free_space():
     free_space = []
     shlak_but_space = []
     not_free_space = []
-    tO = time.time()
+
     for i in range(2, camera_Pac.max_row + 1):
+        tO = time.time()
         place = [
             camera_Pac.cell(row=i, column=1).value,
             camera_Pac.cell(row=i, column=2).value,
@@ -90,14 +91,18 @@ def cheсk_free_space():
             camera_Pac.cell(row=i, column=5).value,
             camera_Pac.cell(row=i, column=6).value
         ]
+        tN = time.time()
+        print("cheсk_free_space read", tN - tO)
+        tO = time.time()
         if place[5] == 1 and place[4] > 5:
             free_space.append(place)
         elif place[5] == 1 and place[4] <= 5:
             shlak_but_space.append(place)
         elif place[5] == 0:
             not_free_space.append(place)
-    tN = time.time()
-    print("cheсk_free_space", tN - tO, i)
+        tN = time.time()
+        print("cheсk_free_space", tN - tO, i)
+
     return free_space, shlak_but_space, not_free_space
 
 
