@@ -23,14 +23,16 @@ async def create_users_db():
                 subscription TEXT NOT NULL DEFAULT 'free',
                 expired_date TEXT,
                 addresses TEXT,
-                contract BOOLEAN NOT NULL DEFAULT 0
+                contract BOOLEAN NOT NULL DEFAULT 0,
+                user_name TEXT,
+                meeting_date TEXT
             )
         ''')
         logger.info('База успешно создана.')
         await db.commit()
 
 
-async def add_user(user_id: int):
+async def add_user(user_id: int, user_name: str):
     """Проверяет или добавляет пользователя в базу данных.
     user_id - идентификатор пользователя.
     """
@@ -41,8 +43,10 @@ async def add_user(user_id: int):
             INSERT INTO users (
                 user_id,
                 expired_date,
-                contract
-            ) VALUES (?, ?, ?)''', (user_id, expired_date, 1)
+                contract,
+                user_name,
+                meeting_date
+            ) VALUES (?, ?, ?, ?, ?)''', (user_id, expired_date, 1, user_name, now)
                          )
         await db.commit()
         logger.info(f'Пользователь {user_id} добавлен в базу данных.')
