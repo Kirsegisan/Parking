@@ -46,6 +46,6 @@ async def check_subscription_users():
     try:
         while True:
             await check_expired_subscriptions()
-            await asyncio.sleep(86400)
+            await asyncio.sleep(10)#86400
     except Exception as e:
         logger.error(f"Ошибка в check_inactive_users: {e}")
