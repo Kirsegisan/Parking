@@ -36,23 +36,26 @@ async def find_object(call: CallbackQuery):
 @find_object_router.callback_query(F.data.startswith('info_'))
 async def select_object(call: CallbackQuery):
     select = call.data.split('_')[1]
+    await call.message.edit_text("Сейчас посмотрим")
     try:
-        detect_result = conetcToCamerasDataBase.detAnalysisAddresses(select)
-        cv2.imwrite('./image_test_free.png', detect_result[0])
+        detect_results = conetcToCamerasDataBase.detAnalysisAddresses(select)
+        for detect_result in detect_results:
+            cv2.imwrite('./image_test_free.png', detect_result[0])
+            await call.message.answer_photo(
+                FSInputFile('./image_test_free.png'),
+                caption=f'Вы выбрали объект {select}'
+            )
+            os.remove('./image_test_free.png')
+
     except Exception as e:
+        print(f"Ошибка при поиске объекта: {e}")  # Вывод в терминал
         await call.message.answer(
             'Ошибка поиска объекта',
             reply_markup=short_menu_buttons()
         )
         return
-    await call.message.delete()
-
-    await call.message.answer_photo(
-        FSInputFile('./image_test_free.png'),
-        caption=f'Вы выбрали объект {select}'
-    )
-    os.remove('./image_test_free.png')
     await call.message.answer(
-        'Выберите действие.',
-        reply_markup=short_menu_buttons()
-    )
+                'Выберите действие.',
+                reply_markup=short_menu_buttons()
+            )
+

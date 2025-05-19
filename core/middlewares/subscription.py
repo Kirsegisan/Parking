@@ -15,7 +15,9 @@ class SubscriptionMiddleware(BaseMiddleware):
     async def __call__(self, handler, event, data):
         if not isinstance(event, types.CallbackQuery):
             return await handler(event, data)
-        if event.data.startswith("pay_"):
+        # if event.data.startswith("pay_"):
+        #     return await handler(event, data)
+        if not event.data == 'find_object':
             return await handler(event, data)
         user_id = event.from_user.id
         bot: Bot = data["bot"]

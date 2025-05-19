@@ -6,7 +6,7 @@ import aiosqlite
 
 logger = logging.getLogger(__name__)
 
-FREE_PERIOD = 14
+FREE_PERIOD = 0.000695 * 15
 
 
 async def create_users_db():
@@ -187,7 +187,7 @@ async def set_user_expired_date(user_id: int, expired_date: datetime) -> None:
         await db.execute("""
             UPDATE users
             SET expired_date = ?, subscription = 'paid'
-            WHERE user_id = ?""", (expired_date, user_id))
+            WHERE user_id = ?""", (expired_date.date(), user_id))
         await db.commit()
         logger.info(
             f'Дата окончания подписки пользователя {user_id} установлена.')
@@ -196,7 +196,7 @@ async def set_user_expired_date(user_id: int, expired_date: datetime) -> None:
 async def check_expired_subscriptions():
     """Проверяет истекшие подписки."""
     async with aiosqlite.connect("core/databases/users.db") as db:
-        today = datetime.now().date()
+        today = datetime.now()
 
         cursor = await db.execute("""
             SELECT user_id
@@ -208,9 +208,10 @@ async def check_expired_subscriptions():
         expired_users = await cursor.fetchall()
 
         for user_id in expired_users:
+            print(user_id)
             await db.execute("""
                 UPDATE users
-                SET subscription = NULL,
+                SET subscription = "NULL",
                 expired_date = NULL
                 WHERE user_id = ?
                 """, (user_id[0],),

@@ -103,7 +103,8 @@ def keyboard(update, context):
     buttons = [
         ['delete data'],
         ['detect train'],
-        ['detect test']
+        ['detect test'],
+        ["exportDB"]
     ]
     update.message.reply_text(
         text='Now, you have kayboard',

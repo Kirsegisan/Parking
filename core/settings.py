@@ -13,6 +13,7 @@ ADDRESSES = conetcToCamerasDataBase.getAddresses()
 # )
 
 PAYMENTS = {  # Ключ - сумма. Значение - количество дней
+    '1': 0.000694444445,
     '100': 30,
     '200': 60,
     '300': 90,

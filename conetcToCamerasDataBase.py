@@ -30,16 +30,18 @@ def detAnalysisAddresses(address):
     freeSpaceImg = []
     cameras = {}
     camerasList = []
+    answer = []
     for i in range(1, usersFile[address].max_row + 1):
         camerasList.append(usersFile[address].cell(row=i, column=1).value)
         cameras[usersFile[address].cell(row=i, column=1).value] = usersFile[address].cell(row=i, column=2).value
 
     for camera in camerasList:
         detectResult = app.detect(camera, cameras[camera])
+        answer.append(detectResult)
         freeSpaceImg.append(detectResult[0])
         freeSpace.append(detectResult[1])
 
-    return detectResult
+    return answer
 
 
 getAddressesString()

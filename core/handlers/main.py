@@ -40,7 +40,7 @@ async def start_bot(call: CallbackQuery):
     await add_user(call.from_user.id, call.from_user.username)
     await update_user_contract(call.from_user.id)
     await call.message.edit_text(
-        '<b>Вы зарегистрировались. Доступен бесплатный период на 14 дней.</b>',
+        '<b>Вы зарегистрировались. Доступен бесплатный период на 15 мин.</b>',
         reply_markup=short_menu_buttons()
         )
 
