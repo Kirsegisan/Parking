@@ -92,7 +92,7 @@ def cheсk_free_space():
             camera_Pac.cell(row=i, column=6).value
         ]
         tN = time.time()
-        print("cheсk_free_space read", tN - tO)
+        # print("cheсk_free_space read", tN - tO)
         tO = time.time()
         if place[5] == 1 and place[4] > 5:
             free_space.append(place)
@@ -101,7 +101,7 @@ def cheсk_free_space():
         elif place[5] == 0:
             not_free_space.append(place)
         tN = time.time()
-        print("cheсk_free_space", tN - tO, i)
+        # print("cheсk_free_space", tN - tO, i)
 
     return free_space, shlak_but_space, not_free_space
 

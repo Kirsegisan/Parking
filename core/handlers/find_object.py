@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, FSInputFile
+from aiogram.types import CallbackQuery, FSInputFile, BufferedInputFile
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 import os
 
@@ -9,6 +9,9 @@ from utils.users_db import get_user_addresses
 
 import conetcToCamerasDataBase
 import cv2
+from io import BytesIO
+from aiogram import types
+import numpy as np
 
 find_object_router = Router()
 
@@ -40,12 +43,11 @@ async def select_object(call: CallbackQuery):
     try:
         detect_results = conetcToCamerasDataBase.detAnalysisAddresses(select)
         for detect_result in detect_results:
-            cv2.imwrite('./image_test_free.png', detect_result[0])
-            await call.message.answer_photo(
-                FSInputFile('./image_test_free.png'),
-                caption=f'Вы выбрали объект {select}'
+            await send_cv2_image_as_photo(
+                call.message,
+                detect_result[0],
+                caption=f'Вы выбрали объект {detect_result[4]}'
             )
-            os.remove('./image_test_free.png')
 
     except Exception as e:
         print(f"Ошибка при поиске объекта: {e}")  # Вывод в терминал
@@ -59,3 +61,24 @@ async def select_object(call: CallbackQuery):
                 reply_markup=short_menu_buttons()
             )
 
+
+async def send_cv2_image_as_photo(
+        message: types.Message,
+        cv2_image: np.ndarray,  # Изображение в формате OpenCV (numpy array)
+        caption: str = ""
+):
+    # Конвертируем изображение в формат, который понимает Telegram (JPEG или PNG)
+    _, buffer = cv2.imencode('.png', cv2_image)  # Можно также использовать '.jpg'
+
+    # Создаем файловый объект в памяти
+    image_bytes = BytesIO(buffer.tobytes())
+    image_bytes.seek(0)  # Перемещаем указатель в начало
+
+    # Создаем BufferedInputFile (специальный тип для aiogram 3.x)
+    input_file = BufferedInputFile(file=image_bytes.read(), filename="image.png")
+
+    # Отправляем фото
+    await message.answer_photo(
+        photo=input_file,
+        caption=caption
+    )
