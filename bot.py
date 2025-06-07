@@ -1,3 +1,4 @@
+import asyncio
 import os
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 import cv2
@@ -65,10 +66,10 @@ def main():
 
 def call_delete_data(update, context):
     if update.message.from_user.name == "@Kirsegisan":
-        sr.delete_data()
+        asyncio.run(sr.delete_data())
         update.message.reply_text("Я обнулил базу данных")
     else:
-        update.message.reply_text(f"Ты не мой папа")
+        update.message.reply_text(f"ВЫ не обладаете правами для этого")
 
 
 def meat_papa(update, context):

@@ -2,6 +2,7 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery, FSInputFile, BufferedInputFile
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 import os
+import traceback
 
 from keyboards.main_kb import short_menu_buttons
 from settings import ADDRESSES
@@ -46,11 +47,12 @@ async def select_object(call: CallbackQuery):
             await send_cv2_image_as_photo(
                 call.message,
                 detect_result[0],
-                caption=f'Вы выбрали объект {detect_result[4]}'
+                caption=f'Вы выбрали объект {detect_result[4]}. Свободных мест {len(detect_result[1])}, занятых {len(detect_result[2])}, сомнительных {len(detect_result[3])}'
             )
 
     except Exception as e:
-        print(f"Ошибка при поиске объекта: {e}")  # Вывод в терминал
+        error_msg = f"Ошибка при поиске объекта: {e}\n\nПолный traceback:\n{traceback.format_exc()}"
+        print(error_msg)
         await call.message.answer(
             'Ошибка поиска объекта',
             reply_markup=short_menu_buttons()

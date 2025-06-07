@@ -1,3 +1,5 @@
+import asyncio
+
 from openpyxl import load_workbook
 from concurrent.futures import ProcessPoolExecutor
 import functools
@@ -82,7 +84,7 @@ def detAnalysisAddresses(address):
 
 def run_detect_in_process(camera, cameras):
     """Функция-обертка для запуска в отдельном процессе"""
-    return app.detect(camera, cameras[camera], model)
+    return asyncio.run(app.detect(camera, cameras[camera], model))
 
 
 getAddressesString()

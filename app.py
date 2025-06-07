@@ -52,10 +52,9 @@ def get_rtsp_frame(rtsp_url, timeout_sec=30):
         return None
 
 
-def detect(camera, video_path, model):
+async def detect(camera, video_path, model):
     tO = time.time()
     print(camera, video_path)
-    sr.setCameraPac(camera)
     cadr = 1
     # stream = VideoGear(video_path).start()
     # frame = stream.read()
@@ -124,35 +123,30 @@ def detect(camera, video_path, model):
         #print(annot_lines[1], annot_lines[3])
         #print(sr.finde_midle(annot_lines[1], annot_lines[3]))
         #print(sr.compute_overlaps(annot_lines[1], annot_lines[3]))
+        #print(data_boxes)
+        #print(annot_lines)
+        free_space = []
+        shlak = []
+        not_free_space = []
+        overlaps = 0
 
-        if sr.createData(annot_lines):
-            print(camera, "Create new data")
-        else:
-            data_boxes = sr.get_data()
-            sr.now_all_space_free()
-            #print(data_boxes)
-            #print(annot_lines)
-            free_space = []
-            overlaps = 0
+        if annot_lines:
+            [free_space, shlak, not_free_space] = await sr.compute_overlaps(annot_lines, camera)
 
-            if data_boxes and annot_lines:
-                overlaps = sr.compute_overlaps(data_boxes, annot_lines, image_to_process)
+        #print(overlaps)
+        print(camera, "Update data")
+        tN = time.time()
+        print(camera, "Analysis", tN - tO)
+        tO = tN
+        #sr.draw_bbox(data_boxes[0], "test", image_to_process)
 
-            #print(overlaps)
-            sr.nexStep()
-            print(camera, "Update data")
-            tN = time.time()
-            print(camera, "Analysis", tN - tO)
-            tO = tN
-            #sr.draw_bbox(data_boxes[0], "test", image_to_process)
     #cv2.imshow('image', sr.draw_data(image_to_process))
     # sr.delete_shit_in_data()
     # cv2.imshow('image', sr.draw_data(image_to_process, sr.chek_free_space()))
     # cv2.waitKey(0)
-    free_space, shlak, not_free_space = sr.cheсk_free_space()
-    sr.reduced_reliability()
+
     print(camera, "Complite detect")
-    foto = sr.draw_data(cv2.imread(f"{camera}_original_images.png"), sr.get_data(), (0, 0, 255))
+    foto = await sr.draw_data(cv2.imread(f"{camera}_original_images.png"), [free_space, shlak, not_free_space])
     tN = time.time()
     print(camera, "Rendering", tN - tO)
     tO = tN
