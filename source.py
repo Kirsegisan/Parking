@@ -120,7 +120,7 @@ class Place:
             )
 
 
-async def init_db(camera):
+async def init_db(camera="M_Kolomenskaya1_1_10_31_W"):
     # 'postgresql://parking_admin:ParkinG!23@185.250.44.14:5432/parking_db'
     global _db_pool
     _db_pool = await asyncpg.create_pool(
