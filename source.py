@@ -120,11 +120,11 @@ class Place:
             )
 
 
-async def init_db():
+async def init_db(camera):
     # 'postgresql://parking_admin:ParkinG!23@185.250.44.14:5432/parking_db'
     global _db_pool
     _db_pool = await asyncpg.create_pool(
-        'postgresql://parking_admin:ParkinG!23@localhost/parking_db'
+        f'postgresql://{camera}_admin:ParkinG!23@localhost/parking_db'
     )
     try:
         async with _db_pool.acquire() as conn:
@@ -278,7 +278,7 @@ async def getOne():
 
 
 async def compute_overlaps(boxes, camera):
-    await init_db()
+    await init_db(camera)
     #print(await get_all_tables())
     await setIOU(camera)
     await now_all_space_free(camera)
