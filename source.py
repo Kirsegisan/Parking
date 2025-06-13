@@ -34,7 +34,7 @@ class Place:
         tO = time.time()
         async with _db_pool.acquire() as conn:
             row = await conn.fetchrow(
-                f"""SELECT "X", "Y", "H", "W", "COUNT", "CONFIDENCE", "FREE", "SUB" FROM parking."{camera}" WHERE ctid = '(0,{self.line})'::tid"""
+                f"""SELECT "X", "Y", "H", "W", "COUNT", "CONFIDENCE", "FREE", "SUB" FROM parking."{camera}" WHERE ctid = '{self.line})'::tid"""
             )
             if row:
                 self.x = row["X"]
@@ -60,7 +60,7 @@ class Place:
                 "CONFIDENCE" = {self.confidence},
                 "FREE" = {self.free},
                 "SUB" = {self.sub}
-            WHERE ctid = '(0,{self.line})'::tid;
+            WHERE ctid = '{self.line}'::tid;
             """
             await conn.execute(query)
             # await conn.execute(
@@ -111,13 +111,15 @@ class Place:
         self.h = (self.h + box[3]) / 2
         self.count += 1
 
-
-
     async def delete(self, camera):
         async with _db_pool.acquire() as conn:
             await conn.execute(
-                f"""DELETE FROM parking."{camera}" WHERE ctid = '(0, {self.line})'::tid"""
+                f"""DELETE FROM parking."{camera}" WHERE ctid = '{self.line}'::tid"""
             )
+
+
+async def shutdown():
+    await _db_pool.close()  # Запрещаем новые подключения
 
 
 async def init_db(camera="M_Kolomenskaya1_1_10_31_W"):
@@ -146,9 +148,15 @@ async def cheсk_free_space(camera):
     shlak_but_space = []
     not_free_space = []
     async with _db_pool.acquire() as conn:
-        lenth = await conn.fetchval(f'SELECT COUNT(*) FROM parking."{camera}"')
-    for i in range(1, lenth + 1):
-        place = Place(i)
+        rows = await conn.fetch(f"""
+                SELECT ctid
+                FROM parking."{camera}"
+                ORDER BY ctid;
+            """)
+        print(rows)
+    for ctid in rows:
+        ctid = ctid['ctid']
+        place = Place(ctid)
         await place.load(camera)
         if place.free and place.confidence > 5:
             free_space.append(place)
@@ -161,15 +169,20 @@ async def cheсk_free_space(camera):
 
 async def reduced_reliability(camera):
     async with _db_pool.acquire() as conn:
-        i = await conn.fetchval(f'SELECT COUNT(*) FROM parking."{camera}"')
-    while i > 0:
-        place = Place(i)
+        rows = await conn.fetch(f"""
+                SELECT ctid
+                FROM parking."{camera}"
+                ORDER BY ctid;
+            """)
+        print(rows)
+    for ctid in rows:
+        ctid = ctid['ctid']
+        place = Place(ctid)
         await place.load(camera)
         if place.free:
             place.confidence -= 0.5
             if place.confidence < 0:
                 await place.delete(camera)
-        i -= 1
     async with _db_pool.acquire() as conn:
         await conn.fetchval(f'VACUUM FULL parking."{camera}"')
 
@@ -217,12 +230,18 @@ async def calculate_iou(box, camera, push=True):
     flag = 1
 
     async with _db_pool.acquire() as conn:
-        length = await conn.fetchval(f'SELECT COUNT(*) FROM parking."{camera}"')
-    #print(camera, box, end='\n')
-    for i in range(1, length + 1):
-        place = Place(i)
+        rows = await conn.fetch(f"""
+        SELECT ctid
+        FROM parking."{camera}"
+        ORDER BY ctid;
+    """)
+        print(rows)
+    print(camera, box, end='\n')
+    for ctid in rows:
+        ctid = ctid['ctid']
+        place = Place(ctid)
         await place.load(camera)
-        #print(i, place.get(), end=' ')
+        print(ctid, place.get(), end=' ')
         y1 = np.maximum(box[0], place.x)
         y2 = np.minimum(box[2] + box[0], place.w + place.x)
         x1 = np.maximum(box[1], place.y)
@@ -231,7 +250,7 @@ async def calculate_iou(box, camera, push=True):
         union = box[2] * box[3] + place.h * place.w - intersection
         iou = intersection / union
         totalIOU += iou
-        #print(iou, end=' ')
+        print(iou, end=' ')
         if iou > 0.6:
             place.finde_midle(box)
             tO = time.time()
@@ -240,24 +259,24 @@ async def calculate_iou(box, camera, push=True):
             tN = time.time()
             t += tO - tN
             flag = 0
-            #print("correct", end=" ")
+            print("correct", end=" ")
         if iou > 0.15:
             place.free = False
             flag = 0
-            #print("mark", end=" ")
+            print("mark", end=" ")
         else:
             if place.sub + iou > 0.15:
                 place.free = False
             place.sub += iou
-            #print("free", end=" ")
-        #print("\n")
+            print("free", end=" ")
+        print("\n")
         if push:
             await place.push(camera)
     async with _db_pool.acquire() as conn:
         await conn.fetchval(f'VACUUM FULL parking."{camera}"')
 
     if flag:
-        place = Place(length)
+        place = Place(0)
         place.set(box, 0, 5, False, 0)
         if push:
             #print("add")
@@ -282,14 +301,15 @@ async def compute_overlaps(boxes, camera):
     #print(await get_all_tables())
     await setIOU(camera)
     await now_all_space_free(camera)
-    await calculate_iou(boxes[0], camera, False)
     for box in boxes:
         place = Place(-1)
         place.set(box)
         await calculate_iou(box, camera)
     await reduced_reliability(camera)
-    await getOne()
-    return await cheсk_free_space(camera)
+    # await getOne()
+    x = await cheсk_free_space(camera)
+    await shutdown()
+    return x
 
 
 async def setIOU(camera):
