@@ -31,7 +31,10 @@ def getAddresses():
     return outData
 
 
-# def detAnalysisAddresses(address):
+# async def detAnalysisAddresses(address):
+    """
+    Последовательно
+    """
 #     freeSpace = []
 #     freeSpaceImg = []
 #     cameras = {}
@@ -42,7 +45,7 @@ def getAddresses():
 #         cameras[usersFile[address].cell(row=i, column=1).value] = usersFile[address].cell(row=i, column=2).value
 #
 #     for camera in camerasList:
-#         detectResult = app.detect(camera, cameras[camera])
+#         detectResult = await app.detect(camera, cameras[camera], model)
 #         answer.append(detectResult)
 #         freeSpaceImg.append(detectResult[0])
 #         freeSpace.append(detectResult[1])
@@ -50,7 +53,10 @@ def getAddresses():
 #     return answer
 
 
-def detAnalysisAddresses(address):
+async def detAnalysisAddresses(address):
+    """
+    Паралельно
+    """
     # Подготовка данных
     cameras = {}
     camerasList = []
@@ -84,6 +90,7 @@ def detAnalysisAddresses(address):
 
 def run_detect_in_process(camera, cameras):
     """Функция-обертка для запуска в отдельном процессе"""
+    print(camera, cameras)
     return asyncio.run(app.detect(camera, cameras[camera], model))
 
 

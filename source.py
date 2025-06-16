@@ -4,8 +4,9 @@ from openpyxl import load_workbook
 import time
 import asyncpg
 
-_db_pool = None
-data_base = load_workbook("dataBase.xlsx")
+_db_ = None
+_db_f = None
+camera = str()
 camera_Pac = []
 camera_count = 1
 
@@ -30,79 +31,38 @@ class Place:
                                                                                            place[
                                                                                                3], count, confidence, free, sub
 
-    async def load(self, camera):
-        tO = time.time()
-        async with _db_pool.acquire() as conn:
-            row = await conn.fetchrow(
-                f"""SELECT "X", "Y", "H", "W", "COUNT", "CONFIDENCE", "FREE", "SUB" FROM parking."{camera}" WHERE ctid = '{self.line})'::tid"""
-            )
-            if row:
-                self.x = row["X"]
-                self.y = row["Y"]
-                self.h = row["H"]
-                self.w = row["W"]
-                self.free = row["FREE"]
-                self.count = row["COUNT"]
-                self.confidence = row["CONFIDENCE"]
-                self.sub = row["SUB"]
-                tN = time.time()
-                #print(camera, "load place", tN - tO, row)
+    async def load(self):
+        self.x = _db_.cell(row=self.line, column=1).value
+        self.y = _db_.cell(row=self.line, column=2).value
+        self.h = _db_.cell(row=self.line, column=3).value
+        self.w = _db_.cell(row=self.line, column=4).value
+        self.free = _db_.cell(row=self.line, column=5).value
+        self.count = _db_.cell(row=self.line, column=6).value
+        self.confidence = _db_.cell(row=self.line, column=7).value
+        self.sub = _db_.cell(row=self.line, column=8).value
 
-    async def push(self, camera):
-        async with _db_pool.acquire() as conn:
-            query = f"""
-            UPDATE parking."{camera}" SET
-                "X" = {self.x},
-                "Y" = {self.y},
-                "H" = {self.h},
-                "W" = {self.w},
-                "COUNT" = {self.count},
-                "CONFIDENCE" = {self.confidence},
-                "FREE" = {self.free},
-                "SUB" = {self.sub}
-            WHERE ctid = '{self.line}'::tid;
-            """
-            await conn.execute(query)
-            # await conn.execute(
-            #     f'''
-            #                 DO $$
-            #             BEGIN
-            #                 IF EXISTS (
-            #                     SELECT 1 FROM parking."{camera}"
-            #                     WHERE ctid = '(0,{self.line})'::tid
-            #                 ) THEN
-            #                     UPDATE parking."{camera}" SET
-            #                         "X" = {self.x},
-            #                         "Y" = {self.y},
-            #                         "H" = {self.h},
-            #                         "W" = {self.w},
-            #                         "COUNT" = {self.count},
-            #                         "CONFIDENCE" = {self.confidence},
-            #                         "FREE" = {self.free},
-            #                         "SUB" = {self.sub}
-            #                     WHERE ctid = '(0,{self.line})'::tid;
-            #                 ELSE
-            #                     INSERT INTO parking."{camera}"
-            #                         ("X", "Y", "H", "W", "COUNT", "CONFIDENCE", "FREE", "SUB")
-            #                     VALUES (
-            #                         {self.x}, {self.y}, {self.h}, {self.w},
-            #                         {self.count}, {self.confidence}, {self.free}, {self.sub}
-            #                     );
-            #                 END IF;
-            #             END $$;
-            #     ''',
-            #     self.x, self.y, self.h, self.w,
-            #     self.count, self.confidence, self.free, self.sub
-            # )
+    async def push(self):
+        _db_.cell(row=self.line, column=1).value = self.x
+        _db_.cell(row=self.line, column=2).value = self.y
+        _db_.cell(row=self.line, column=3).value = self.h
+        _db_.cell(row=self.line, column=4).value = self.w
+        _db_.cell(row=self.line, column=5).value = self.free
+        _db_.cell(row=self.line, column=6).value = self.count
+        _db_.cell(row=self.line, column=7).value = self.confidence
+        _db_.cell(row=self.line, column=8).value = self.sub
 
-    async def add(self, camera):
-        async with _db_pool.acquire() as conn:
-            query = f"""
-            INSERT INTO parking."{camera}"
-                ("X", "Y", "H", "W", "COUNT", "CONFIDENCE", "FREE", "SUB")
-            VALUES ({self.x}, {self.y}, {self.h}, {self.w}, {self.count}, {self.confidence}, {self.free}, {self.sub})
-            """
-            await conn.execute(query)
+    async def add(self):
+        self.line = _db_.max_row + 1
+        if _db_.cell(row=1, column=1).value == None:
+            self.line = 1
+        _db_.cell(row=self.line, column=1).value = self.x
+        _db_.cell(row=self.line, column=2).value = self.y
+        _db_.cell(row=self.line, column=3).value = self.h
+        _db_.cell(row=self.line, column=4).value = self.w
+        _db_.cell(row=self.line, column=5).value = self.free
+        _db_.cell(row=self.line, column=6).value = self.count
+        _db_.cell(row=self.line, column=7).value = self.confidence
+        _db_.cell(row=self.line, column=8).value = self.sub
 
     def finde_midle(self, box):
         self.x = (self.x + box[0]) / 2
@@ -111,53 +71,39 @@ class Place:
         self.h = (self.h + box[3]) / 2
         self.count += 1
 
-    async def delete(self, camera):
-        async with _db_pool.acquire() as conn:
-            await conn.execute(
-                f"""DELETE FROM parking."{camera}" WHERE ctid = '{self.line}'::tid"""
-            )
+    async def delete(self):
+        _db_.delete_rows(self.line)
 
 
-async def shutdown():
-    await _db_pool.close()  # Запрещаем новые подключения
+async def save():
+    # print("saving...")
+    _db_f.save(f"bd/{camera}.xlsx")
+    # print("saving complete")
 
 
-async def init_db(camera="M_Kolomenskaya1_1_10_31_W"):
-    # 'postgresql://parking_admin:ParkinG!23@185.250.44.14:5432/parking_db'
-    global _db_pool
-    _db_pool = await asyncpg.create_pool(
-        f'postgresql://{camera}_admin:ParkinG!23@localhost/parking_db'
-    )
-    try:
-        async with _db_pool.acquire() as conn:
-            await conn.fetch("SELECT 1")
+async def init_db(newCamera):
+    global _db_
+    global _db_f
+    global camera
+    camera = newCamera
+    _db_f = load_workbook(f"bd/{camera}.xlsx")
+    if _db_f:
+        _db_ = _db_f["main"]
         print("successful connect")
-    except:
-        print("failed connect")
 
 
-async def now_all_space_free(camera):
-    async with _db_pool.acquire() as conn:
-        await conn.execute(
-            f'UPDATE parking."{camera}" SET "FREE" = True'
-        )
+async def now_all_space_free():
+    for i in range(1, _db_.max_row):
+        _db_.cell(row=i, column=5).value = True
 
 
-async def cheсk_free_space(camera):
+async def cheсk_free_space():
     free_space = []
     shlak_but_space = []
     not_free_space = []
-    async with _db_pool.acquire() as conn:
-        rows = await conn.fetch(f"""
-                SELECT ctid
-                FROM parking."{camera}"
-                ORDER BY ctid;
-            """)
-        print(rows)
-    for ctid in rows:
-        ctid = ctid['ctid']
-        place = Place(ctid)
-        await place.load(camera)
+    for i in range(1, _db_.max_row  + 1):
+        place = Place(i)
+        await place.load()
         if place.free and place.confidence > 5:
             free_space.append(place)
         elif place.free:
@@ -167,81 +113,26 @@ async def cheсk_free_space(camera):
     return free_space, shlak_but_space, not_free_space
 
 
-async def reduced_reliability(camera):
-    async with _db_pool.acquire() as conn:
-        rows = await conn.fetch(f"""
-                SELECT ctid
-                FROM parking."{camera}"
-                ORDER BY ctid;
-            """)
-        print(rows)
-    for ctid in rows:
-        ctid = ctid['ctid']
-        place = Place(ctid)
-        await place.load(camera)
+async def reduced_reliability():
+    for i in range(1, _db_.max_row + 1):
+        place = Place(i)
+        await place.load()
         if place.free:
             place.confidence -= 0.5
             if place.confidence < 0:
-                await place.delete(camera)
-    async with _db_pool.acquire() as conn:
-        await conn.fetchval(f'VACUUM FULL parking."{camera}"')
+                await place.delete()
 
 
-def same_box(box1, box2):
-    n = 0
-    for i in range(4):
-        n += abs(box1[i] - box2[i])
-    return n < 30
-
-
-def delete_shit_in_data():
-    i = 2
-    max_row = camera_Pac.max_row
-    while i <= max_row - 1:
-        j = i + 1
-        while j <= max_row:
-            box1 = [
-                camera_Pac.cell(row=i, column=1).value,
-                camera_Pac.cell(row=i, column=2).value,
-                camera_Pac.cell(row=i, column=3).value,
-                camera_Pac.cell(row=i, column=4).value
-            ]
-            box2 = [
-                camera_Pac.cell(row=j, column=1).value,
-                camera_Pac.cell(row=j, column=2).value,
-                camera_Pac.cell(row=j, column=3).value,
-                camera_Pac.cell(row=j, column=4).value
-            ]
-            if same_box(box1, box2):
-                camera_Pac.delete_rows(j)
-                max_row -= 1
-                print("One more shit was deleted ", camera_Pac.cell(row=i, column=5).value,
-                      camera_Pac.cell(row=i, column=6).value)
-                data_base.save("dataBase.xlsx")
-            else:
-                j += 1
-        i += 1
-
-
-async def calculate_iou(box, camera, push=True):
+async def calculate_iou(box, push=True):
     t = 0
     totalIOU = 0
     maxIOU = 0
     flag = 1
-
-    async with _db_pool.acquire() as conn:
-        rows = await conn.fetch(f"""
-        SELECT ctid
-        FROM parking."{camera}"
-        ORDER BY ctid;
-    """)
-        print(rows)
-    print(camera, box, end='\n')
-    for ctid in rows:
-        ctid = ctid['ctid']
-        place = Place(ctid)
-        await place.load(camera)
-        print(ctid, place.get(), end=' ')
+    # print(camera, box, _db_.max_row, end='\n')
+    for i in range(1, _db_.max_row + 1):
+        place = Place(i)
+        await place.load()
+        # print(i, place.get(), end=' ')
         y1 = np.maximum(box[0], place.x)
         y2 = np.minimum(box[2] + box[0], place.w + place.x)
         x1 = np.maximum(box[1], place.y)
@@ -250,7 +141,7 @@ async def calculate_iou(box, camera, push=True):
         union = box[2] * box[3] + place.h * place.w - intersection
         iou = intersection / union
         totalIOU += iou
-        print(iou, end=' ')
+        # print(iou, end=' ')
         if iou > 0.6:
             place.finde_midle(box)
             tO = time.time()
@@ -259,64 +150,48 @@ async def calculate_iou(box, camera, push=True):
             tN = time.time()
             t += tO - tN
             flag = 0
-            print("correct", end=" ")
+            # print("correct", end=" ")
         if iou > 0.15:
             place.free = False
             flag = 0
-            print("mark", end=" ")
+            # print("mark", end=" ")
         else:
             if place.sub + iou > 0.15:
                 place.free = False
             place.sub += iou
-            print("free", end=" ")
-        print("\n")
+            # print("free", end=" ")
+        # print("\n")
         if push:
-            await place.push(camera)
-    async with _db_pool.acquire() as conn:
-        await conn.fetchval(f'VACUUM FULL parking."{camera}"')
+            await place.push()
 
     if flag:
-        place = Place(0)
+        place = Place(1)
         place.set(box, 0, 5, False, 0)
         if push:
-            #print("add")
-            await place.add(camera)
+            # print("add")
+            await place.add()
     #print('\n')
     return True
 
 
-async def getOne():
-    tables = await get_all_tables()
-    for table in tables:
-        if table != "CAMERAS":
-            async with _db_pool.acquire() as conn:
-                rows = await conn.fetch(f'SELECT ctid, * FROM parking."{table}"')
-                for row in rows:
-                    print(f"{table}--- CTID: {row['ctid']}, Data: {dict(row)}")
-
-
-
-async def compute_overlaps(boxes, camera):
-    await init_db(camera)
-    #print(await get_all_tables())
-    await setIOU(camera)
-    await now_all_space_free(camera)
+async def compute_overlaps(boxes, newCamera):
+    await init_db(newCamera)
+    await setIOU()
+    await now_all_space_free()
     for box in boxes:
         place = Place(-1)
         place.set(box)
-        await calculate_iou(box, camera)
-    await reduced_reliability(camera)
-    # await getOne()
-    x = await cheсk_free_space(camera)
-    await shutdown()
+        await calculate_iou(box)
+    await reduced_reliability()
+    x = await cheсk_free_space()
+    await save()
     return x
 
 
-async def setIOU(camera):
-    async with _db_pool.acquire() as conn:
-        await conn.execute(
-            f'UPDATE parking."{camera}" SET "SUB" = 0'
-        )
+async def setIOU():
+    # print(_db_.max_row)
+    for i in range(1, _db_.max_row + 1):
+        _db_.cell(row=i, column=8).value = 0
 
 
 async def draw_data(image_to_process, boxes, parking_color=(0, 255, 0)):
@@ -337,23 +212,376 @@ async def draw_data(image_to_process, boxes, parking_color=(0, 255, 0)):
     return image_to_process
 
 
-async def get_all_tables():
-    async with _db_pool.acquire() as conn:
-        tables = await conn.fetch(
-            "SELECT table_name FROM information_schema.tables "
-            "WHERE table_schema = 'parking' AND table_type = 'BASE TABLE'"
-        )
-        return [table['table_name'] for table in tables]
-
-
 async def delete_data():
-    await init_db()
-    tables = await get_all_tables()
-    for table in tables:
-        if table != "CAMERAS":
-            async with _db_pool.acquire() as conn:
-                await conn.execute(f'DELETE FROM parking."{table}"')
-                await conn.fetchval(f'VACUUM FULL parking."{table}"')
+    return
+
+
+#
+# import cv2
+# import numpy as np
+# from openpyxl import load_workbook
+# import time
+# import asyncpg
+#
+# _db_pool = None
+# data_base = load_workbook("dataBase.xlsx")
+# camera_Pac = []
+# camera_count = 1
+#
+#
+# class Place:
+#     def __init__(self, line):
+#         self.line = line
+#         self.x = int()
+#         self.y = int()
+#         self.h = int()
+#         self.w = int()
+#         self.free = bool()
+#         self.count = int()
+#         self.confidence = int()
+#         self.sub = int()
+#
+#     def get(self):
+#         return [self.x, self.y, self.w, self.h, self.count, self.free, self.confidence, self.sub]
+#
+#     def set(self, place, count=-1, confidence=-1, free=False, sub=-1):
+#         self.x, self.y, self.w, self.h, self.count, self.confidence, self.free, self.sub = place[0], place[1], place[2], \
+#                                                                                            place[
+#                                                                                                3], count, confidence, free, sub
+#
+#     async def load(self, camera):
+#         tO = time.time()
+#         async with _db_pool.acquire() as conn:
+#             row = await conn.fetchrow(
+#                 f"""SELECT "X", "Y", "H", "W", "COUNT", "CONFIDENCE", "FREE", "SUB" FROM parking."{camera}" WHERE ctid = '{self.line})'::tid"""
+#             )
+#             if row:
+#                 self.x = row["X"]
+#                 self.y = row["Y"]
+#                 self.h = row["H"]
+#                 self.w = row["W"]
+#                 self.free = row["FREE"]
+#                 self.count = row["COUNT"]
+#                 self.confidence = row["CONFIDENCE"]
+#                 self.sub = row["SUB"]
+#                 tN = time.time()
+#                 #print(camera, "load place", tN - tO, row)
+#
+#     async def push(self, camera):
+#         async with _db_pool.acquire() as conn:
+#             query = f"""
+#             UPDATE parking."{camera}" SET
+#                 "X" = {self.x},
+#                 "Y" = {self.y},
+#                 "H" = {self.h},
+#                 "W" = {self.w},
+#                 "COUNT" = {self.count},
+#                 "CONFIDENCE" = {self.confidence},
+#                 "FREE" = {self.free},
+#                 "SUB" = {self.sub}
+#             WHERE ctid = '{self.line}'::tid;
+#             """
+#             await conn.execute(query)
+#             # await conn.execute(
+#             #     f'''
+#             #                 DO $$
+#             #             BEGIN
+#             #                 IF EXISTS (
+#             #                     SELECT 1 FROM parking."{camera}"
+#             #                     WHERE ctid = '(0,{self.line})'::tid
+#             #                 ) THEN
+#             #                     UPDATE parking."{camera}" SET
+#             #                         "X" = {self.x},
+#             #                         "Y" = {self.y},
+#             #                         "H" = {self.h},
+#             #                         "W" = {self.w},
+#             #                         "COUNT" = {self.count},
+#             #                         "CONFIDENCE" = {self.confidence},
+#             #                         "FREE" = {self.free},
+#             #                         "SUB" = {self.sub}
+#             #                     WHERE ctid = '(0,{self.line})'::tid;
+#             #                 ELSE
+#             #                     INSERT INTO parking."{camera}"
+#             #                         ("X", "Y", "H", "W", "COUNT", "CONFIDENCE", "FREE", "SUB")
+#             #                     VALUES (
+#             #                         {self.x}, {self.y}, {self.h}, {self.w},
+#             #                         {self.count}, {self.confidence}, {self.free}, {self.sub}
+#             #                     );
+#             #                 END IF;
+#             #             END $$;
+#             #     ''',
+#             #     self.x, self.y, self.h, self.w,
+#             #     self.count, self.confidence, self.free, self.sub
+#             # )
+#
+#     async def add(self, camera):
+#         async with _db_pool.acquire() as conn:
+#             query = f"""
+#             INSERT INTO parking."{camera}"
+#                 ("X", "Y", "H", "W", "COUNT", "CONFIDENCE", "FREE", "SUB")
+#             VALUES ({self.x}, {self.y}, {self.h}, {self.w}, {self.count}, {self.confidence}, {self.free}, {self.sub})
+#             """
+#             await conn.execute(query)
+#
+#     def finde_midle(self, box):
+#         self.x = (self.x + box[0]) / 2
+#         self.y = (self.y + box[1]) / 2
+#         self.w = (self.w + box[2]) / 2
+#         self.h = (self.h + box[3]) / 2
+#         self.count += 1
+#
+#     async def delete(self, camera):
+#         async with _db_pool.acquire() as conn:
+#             await conn.execute(
+#                 f"""DELETE FROM parking."{camera}" WHERE ctid = '{self.line}'::tid"""
+#             )
+#
+#
+# async def shutdown():
+#     await _db_pool.close()  # Запрещаем новые подключения
+#
+#
+# async def init_db(camera):
+#     global _db_pool
+#     if camera == '':
+#         _db_pool = await asyncpg.create_pool(
+#             f'postgresql://parking_admin:ParkinG!23@185.250.44.14:5432/parking_db'
+#         )
+#     # 'postgresql://parking_admin:ParkinG!23@185.250.44.14:5432/parking_db'
+#     else:
+#         _db_pool = await asyncpg.create_pool(
+#             f'postgresql://{camera}_admin:ParkinG!23@185.250.44.14:5432/parking_db'
+#         )
+#     try:
+#         async with _db_pool.acquire() as conn:
+#             await conn.fetch("SELECT 1")
+#         print("successful connect")
+#     except:
+#         print("failed connect")
+#
+#
+# async def now_all_space_free(camera):
+#     async with _db_pool.acquire() as conn:
+#         await conn.execute(
+#             f'UPDATE parking."{camera}" SET "FREE" = True'
+#         )
+#
+#
+# async def cheсk_free_space(camera):
+#     free_space = []
+#     shlak_but_space = []
+#     not_free_space = []
+#     async with _db_pool.acquire() as conn:
+#         rows = await conn.fetch(f"""
+#                 SELECT ctid
+#                 FROM parking."{camera}"
+#                 ORDER BY ctid;
+#             """)
+#         print(rows)
+#     for ctid in rows:
+#         ctid = ctid['ctid']
+#         place = Place(ctid)
+#         await place.load(camera)
+#         if place.free and place.confidence > 5:
+#             free_space.append(place)
+#         elif place.free:
+#             shlak_but_space.append(place)
+#         elif not place.free:
+#             not_free_space.append(place)
+#     return free_space, shlak_but_space, not_free_space
+#
+#
+# async def reduced_reliability(camera):
+#     async with _db_pool.acquire() as conn:
+#         rows = await conn.fetch(f"""
+#                 SELECT ctid
+#                 FROM parking."{camera}"
+#                 ORDER BY ctid;
+#             """)
+#         print(rows)
+#     for ctid in rows:
+#         ctid = ctid['ctid']
+#         place = Place(ctid)
+#         await place.load(camera)
+#         if place.free:
+#             place.confidence -= 0.5
+#             if place.confidence < 0:
+#                 await place.delete(camera)
+#     async with _db_pool.acquire() as conn:
+#         await conn.fetchval(f'VACUUM FULL parking."{camera}"')
+#
+#
+# def same_box(box1, box2):
+#     n = 0
+#     for i in range(4):
+#         n += abs(box1[i] - box2[i])
+#     return n < 30
+#
+#
+# def delete_shit_in_data():
+#     i = 2
+#     max_row = camera_Pac.max_row
+#     while i <= max_row - 1:
+#         j = i + 1
+#         while j <= max_row:
+#             box1 = [
+#                 camera_Pac.cell(row=i, column=1).value,
+#                 camera_Pac.cell(row=i, column=2).value,
+#                 camera_Pac.cell(row=i, column=3).value,
+#                 camera_Pac.cell(row=i, column=4).value
+#             ]
+#             box2 = [
+#                 camera_Pac.cell(row=j, column=1).value,
+#                 camera_Pac.cell(row=j, column=2).value,
+#                 camera_Pac.cell(row=j, column=3).value,
+#                 camera_Pac.cell(row=j, column=4).value
+#             ]
+#             if same_box(box1, box2):
+#                 camera_Pac.delete_rows(j)
+#                 max_row -= 1
+#                 print("One more shit was deleted ", camera_Pac.cell(row=i, column=5).value,
+#                       camera_Pac.cell(row=i, column=6).value)
+#                 data_base.save("dataBase.xlsx")
+#             else:
+#                 j += 1
+#         i += 1
+#
+#
+# async def calculate_iou(box, camera, push=True):
+#     t = 0
+#     totalIOU = 0
+#     maxIOU = 0
+#     flag = 1
+#
+#     async with _db_pool.acquire() as conn:
+#         rows = await conn.fetch(f"""
+#         SELECT ctid
+#         FROM parking."{camera}"
+#         ORDER BY ctid;
+#     """)
+#         print(rows)
+#     print(camera, box, end='\n')
+#     for ctid in rows:
+#         ctid = ctid['ctid']
+#         place = Place(ctid)
+#         await place.load(camera)
+#         print(ctid, place.get(), end=' ')
+#         y1 = np.maximum(box[0], place.x)
+#         y2 = np.minimum(box[2] + box[0], place.w + place.x)
+#         x1 = np.maximum(box[1], place.y)
+#         x2 = np.minimum(box[3] + box[1], place.h + place.y)
+#         intersection = np.maximum(x2 - x1, 0) * np.maximum(y2 - y1, 0)
+#         union = box[2] * box[3] + place.h * place.w - intersection
+#         iou = intersection / union
+#         totalIOU += iou
+#         print(iou, end=' ')
+#         if iou > 0.6:
+#             place.finde_midle(box)
+#             tO = time.time()
+#             place.sub = iou
+#             place.confidence += 1
+#             tN = time.time()
+#             t += tO - tN
+#             flag = 0
+#             print("correct", end=" ")
+#         if iou > 0.15:
+#             place.free = False
+#             flag = 0
+#             print("mark", end=" ")
+#         else:
+#             if place.sub + iou > 0.15:
+#                 place.free = False
+#             place.sub += iou
+#             print("free", end=" ")
+#         print("\n")
+#         if push:
+#             await place.push(camera)
+#     async with _db_pool.acquire() as conn:
+#         await conn.fetchval(f'VACUUM FULL parking."{camera}"')
+#
+#     if flag:
+#         place = Place(0)
+#         place.set(box, 0, 5, False, 0)
+#         if push:
+#             #print("add")
+#             await place.add(camera)
+#     #print('\n')
+#     return True
+#
+#
+# async def getOne():
+#     tables = await get_all_tables()
+#     for table in tables:
+#         if table != "CAMERAS":
+#             async with _db_pool.acquire() as conn:
+#                 rows = await conn.fetch(f'SELECT ctid, * FROM parking."{table}"')
+#                 for row in rows:
+#                     print(f"{table}--- CTID: {row['ctid']}, Data: {dict(row)}")
+#
+#
+#
+# async def compute_overlaps(boxes, camera):
+#     await init_db(camera)
+#     #print(await get_all_tables())
+#     await setIOU(camera)
+#     await now_all_space_free(camera)
+#     for box in boxes:
+#         place = Place(-1)
+#         place.set(box)
+#         await calculate_iou(box, camera)
+#     await reduced_reliability(camera)
+#     await getOne()
+#     x = await cheсk_free_space(camera)
+#     await shutdown()
+#     return x
+#
+#
+# async def setIOU(camera):
+#     async with _db_pool.acquire() as conn:
+#         await conn.execute(
+#             f'UPDATE parking."{camera}" SET "SUB" = 0'
+#         )
+#
+#
+# async def draw_data(image_to_process, boxes, parking_color=(0, 255, 0)):
+#     color = parking_color
+#     width = 2
+#     for i in boxes:
+#         for place in i:
+#             x, y, w, h = int(place.x), int(place.y), int(place.w), int(place.h)
+#             start = (x, y)
+#             end = (x + w, y + h)
+#             if place.free and place.confidence > 5:
+#                 color = (0, 255, 0)
+#             elif place.free and place.confidence <= 5:
+#                 color = (0, 165, 255)
+#             else:
+#                 color = (255, 0, 0)
+#             image_to_process = cv2.rectangle(image_to_process, start, end, color, width)
+#     return image_to_process
+#
+#
+# async def get_all_tables():
+#     async with _db_pool.acquire() as conn:
+#         tables = await conn.fetch(
+#             "SELECT table_name FROM information_schema.tables "
+#             "WHERE table_schema = 'parking' AND table_type = 'BASE TABLE'"
+#         )
+#         return [table['table_name'] for table in tables]
+#
+#
+# async def delete_data():
+#     await init_db('')
+#     tables = await get_all_tables()
+#     for table in tables:
+#         if table != "CAMERAS":
+#             async with _db_pool.acquire() as conn:
+#                 await conn.execute(f'DELETE FROM parking."{table}"')
+#                 await conn.fetchval(f'VACUUM FULL parking."{table}"')
+#
+
+
+
 
 """
 import cv2

@@ -42,7 +42,7 @@ async def select_object(call: CallbackQuery):
     select = call.data.split('_')[1]
     await call.message.edit_text("Сейчас посмотрим")
     try:
-        detect_results = conetcToCamerasDataBase.detAnalysisAddresses(select)
+        detect_results = await conetcToCamerasDataBase.detAnalysisAddresses(select)
         for detect_result in detect_results:
             await send_cv2_image_as_photo(
                 call.message,
