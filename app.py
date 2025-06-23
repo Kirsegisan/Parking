@@ -1,4 +1,3 @@
-
 #from roboflow import Roboflow
 import cv2
 import subprocess
@@ -53,106 +52,115 @@ def get_rtsp_frame(rtsp_url, timeout_sec=30):
 
 
 async def detect(camera, video_path, model):
+    # Засекаем время начала операции
     tO = time.time()
     print(camera, video_path)
-    cadr = 1
-    # stream = VideoGear(video_path).start()
-    # frame = stream.read()
-    # if frame is not None:
-    #     cv2.imshow('Frame', frame)
-    #     cv2.waitKey(0)
+
+    # Инициализация захвата видео
     video_capture = cv2.VideoCapture(video_path)
-    # video_capture = cv2.VideoCapture("images/record/train.mp4")
+
+    # Замер времени подключения к камере
     tN = time.time()
     print(camera, "Connect camera", tN - tO)
     tO = tN
-    while cadr > 0:
-        cadr -= 1
-        ret, image_to_process = video_capture.read()
-        # video_capture.release()
-        # image_to_process = cv2.imread("images/image214.png")
-        # image_to_process = cv2.imread("images/image234.png")
-        # image_to_process = frame
-        cv2.imwrite(f'{camera}_original_images.png', draw_red_zone(image_to_process, camera, 1))
-        height, width, _ = image_to_process.shape
-        if cadr == 0:
-            count = len(os.listdir(r"generateDataset/imgbase")) + 1
-            cv2.imwrite(f'generateDataset/imgbase/image{count}.png', image_to_process)
-            print(camera, f"Images{count} is saved")
-        blob = cv2.dnn.blobFromImage(image_to_process, 1 / 255, (320, 320),
-                                     (0, 0, 0), swapRB=True, crop=False)
 
-        class_indexes, class_scores, boxes = ([] for i in range(3))
-        #results = model.predict(image_to_process, confidence=50, overlap=90).json()
-        results = model.predict(source=draw_red_zone(image_to_process, camera), conf=0.50)
-        annotated_image = results[0].plot()  # <-- Используем .plot() для визуализации
+    # Чтение первого кадра из видео
+    ret, image_to_process = video_capture.read()
 
-        # show_image(annotated_image)
-        cv2.imwrite(f'generateDataset/imgPredict/{camera}image{count}.png', annotated_image)
+    # Сохранение оригинального изображения с нарисованной красной зоной
+    cv2.imwrite(f'{camera}_original_images.png', draw_red_zone(image_to_process, camera, 1))
 
-        tN = time.time()
-        print(camera, "Detect images", tN - tO)
-        tO = tN
-        #print(results)
+    # Получение размеров изображения
+    height, width, _ = image_to_process.shape
 
-        bboxes_ = results[0].boxes.xyxy.tolist()
-        bboxes = list(map(lambda x: list(map(lambda y: int(y), x)), bboxes_))
-        confs_ = results[-1].boxes.conf.tolist()
-        confs = list(map(lambda x: int(x * 100), confs_))
-        classes_ = results[-1].boxes.cls.tolist()
-        classes = list(map(lambda x: int(x), classes_))
-        cls_dict = results[-1].names
-        class_names = list(map(lambda x: cls_dict[x], classes))
+    # Подсчет существующих файлов для генерации уникального имени
+    count = len(os.listdir(r"generateDataset/imgbase")) + 1
 
-        #print(bboxes)
+    # Сохранение оригинального изображения в базу
+    cv2.imwrite(f'generateDataset/imgbase/image{count}.png', image_to_process)
+    print(camera, f"Images{count} is saved")
 
-        annot_lines = []
-        for index, val in enumerate(class_names):
-            xmin, ymin, xmax, ymax = int(bboxes[index][0]), int(bboxes[index][1]), int(bboxes[index][2]), int(bboxes[index][3])
-            widthBox = xmax - xmin
-            heightBox = ymax - ymin
-            center_x = xmin + (widthBox / 2)
-            center_y = ymin + (heightBox / 2)
-            annotation = [center_x - (widthBox / 2), center_y - (heightBox / 2), widthBox, heightBox]
-            annot_lines.append(annotation)
-        #
+    # Инициализация списков для хранения результатов детекции
+    class_indexes, class_scores, boxes = ([] for i in range(3))
 
-        # for i in results["predictions"]:
-        #     annotation = [i['x'] - i["width"]/2, i['y'] - i["height"]/2, i["width"], i["height"]]
-        #     annot_lines.append(annotation)
-        #print(annot_lines[1], annot_lines[3])
-        #print(sr.finde_midle(annot_lines[1], annot_lines[3]))
-        #print(sr.compute_overlaps(annot_lines[1], annot_lines[3]))
-        #print(data_boxes)
-        #print(annot_lines)
+    # Выполнение предсказания модели YOLO на обработанном изображении
+    results = model.predict(source=draw_red_zone(image_to_process, camera), conf=0.50)
+
+    # Визуализация результатов детекции
+    annotated_image = results[0].plot()  # <-- Используем .plot() для визуализации
+
+    # Сохранение аннотированного изображения
+    cv2.imwrite(f'generateDataset/imgPredict/{camera}image{count}.png', annotated_image)
+
+    # Замер времени выполнения детекции
+    tN = time.time()
+    print(camera, "Detect images", tN - tO)
+    tO = tN
+
+    # Извлечение bounding boxes в формате [xmin, ymin, xmax, ymax]
+    bboxes_ = results[0].boxes.xyxy.tolist()
+    bboxes = list(map(lambda x: list(map(lambda y: int(y), x)), bboxes_))
+
+    # Извлечение уверенностей и приведение к процентам
+    confs_ = results[-1].boxes.conf.tolist()
+    confs = list(map(lambda x: int(x * 100), confs_))
+
+    # Извлечение классов объектов
+    classes_ = results[-1].boxes.cls.tolist()
+    classes = list(map(lambda x: int(x), classes_))
+
+    # Получение словаря имен классов
+    cls_dict = results[-1].names
+    class_names = list(map(lambda x: cls_dict[x], classes))
+
+    # Подготовка данных для аннотаций
+    annot_lines = []
+    for index, val in enumerate(class_names):
+        # Извлечение координат bounding box
+        xmin, ymin, xmax, ymax = int(bboxes[index][0]), int(bboxes[index][1]), int(bboxes[index][2]), int(
+            bboxes[index][3])
+
+        # Вычисление размеров и центра bounding box
+        widthBox = xmax - xmin
+        heightBox = ymax - ymin
+        center_x = xmin + (widthBox / 2)
+        center_y = ymin + (heightBox / 2)
+
+        # Формирование аннотации в формате [x, y, width, height]
+        annotation = [center_x - (widthBox / 2), center_y - (heightBox / 2), widthBox, heightBox]
+        annot_lines.append(annotation)
+
+        # Инициализация списков для классификации пространства
         free_space = []
         shlak = []
         not_free_space = []
-        overlaps = 0
 
         if annot_lines:
+            # Анализ пересечений bounding boxes
             [free_space, shlak, not_free_space] = await sr.compute_overlaps(annot_lines, camera)
 
-        #print(overlaps)
+        # Логирование времени анализа
         print(camera, "Update data")
         tN = time.time()
         print(camera, "Analysis", tN - tO)
         tO = tN
-        #sr.draw_bbox(data_boxes[0], "test", image_to_process)
 
-    #cv2.imshow('image', sr.draw_data(image_to_process))
-    # sr.delete_shit_in_data()
-    # cv2.imshow('image', sr.draw_data(image_to_process, sr.chek_free_space()))
-    # cv2.waitKey(0)
-
+    # Финализация процесса детекции
     print(camera, "Complite detect")
+
+    # Визуализация результатов классификации пространства
     foto = await sr.draw_data(cv2.imread(f"{camera}_original_images.png"), [free_space, shlak, not_free_space])
+
+    # Замер времени рендеринга
     tN = time.time()
     print(camera, "Rendering", tN - tO)
     tO = tN
+
+    # Сохранение итогового изображения
     cv2.imwrite(f'generateDataset/imgItog/{camera}image{count}.png', foto)
+
+    # Возврат результатов
     return foto, free_space, not_free_space, shlak, camera
-        #cv2.waitKey(0)
 
 
 if __name__ == "main":

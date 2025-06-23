@@ -12,26 +12,54 @@ camera_count = 1
 
 
 class Place:
+    """
+    Класс для работы с данными о парковочных местах/зонах.
+    Обеспечивает взаимодействие с базой данных (Excel через openpyxl) и основные операции с местами.
+    """
+
     def __init__(self, line):
-        self.line = line
-        self.x = int()
-        self.y = int()
-        self.h = int()
-        self.w = int()
-        self.free = bool()
-        self.count = int()
-        self.confidence = int()
-        self.sub = int()
+        """
+        Инициализация объекта места.
+
+        Args:
+            line (int): Номер строки в базе данных, соответствующей этому месту.
+        """
+        self.line = line  # Номер строки в БД
+        self.x = int()  # X-координата места
+        self.y = int()  # Y-координата места
+        self.h = int()  # Высота места
+        self.w = int()  # Ширина места
+        self.free = bool()  # Статус свободно/занято
+        self.count = int()  # Счетчик использования
+        self.confidence = int()  # Уверенность детекции
+        self.sub = int()  # Дополнительный параметр
 
     def get(self):
+        """
+        Возвращает все параметры места в виде списка.
+
+        Returns:
+            list: [x, y, w, h, count, free, confidence, sub]
+        """
         return [self.x, self.y, self.w, self.h, self.count, self.free, self.confidence, self.sub]
 
     def set(self, place, count=-1, confidence=-1, free=False, sub=-1):
+        """
+        Устанавливает параметры места.
+
+        Args:
+            place (list): Основные параметры [x, y, w, h]
+            count (int): Счетчик использования (по умолчанию -1)
+            confidence (int): Уверенность детекции (по умолчанию -1)
+            free (bool): Статус свободно (по умолчанию False)
+            sub (int): Дополнительный параметр (по умолчанию -1)
+        """
         self.x, self.y, self.w, self.h, self.count, self.confidence, self.free, self.sub = place[0], place[1], place[2], \
                                                                                            place[
                                                                                                3], count, confidence, free, sub
 
     async def load(self):
+        """Загружает данные места из базы данных по номеру строки."""
         self.x = _db_.cell(row=self.line, column=1).value
         self.y = _db_.cell(row=self.line, column=2).value
         self.h = _db_.cell(row=self.line, column=3).value
@@ -42,6 +70,7 @@ class Place:
         self.sub = _db_.cell(row=self.line, column=8).value
 
     async def push(self):
+        """Сохраняет текущие параметры места в базу данных."""
         _db_.cell(row=self.line, column=1).value = self.x
         _db_.cell(row=self.line, column=2).value = self.y
         _db_.cell(row=self.line, column=3).value = self.h
@@ -52,6 +81,10 @@ class Place:
         _db_.cell(row=self.line, column=8).value = self.sub
 
     async def add(self):
+        """
+        Добавляет новое место в конец базы данных.
+        Автоматически определяет номер строки.
+        """
         self.line = _db_.max_row + 1
         if _db_.cell(row=1, column=1).value == None:
             self.line = 1
@@ -65,23 +98,32 @@ class Place:
         _db_.cell(row=self.line, column=8).value = self.sub
 
     def finde_midle(self, box):
+        """
+        Вычисляет среднее значение координат между текущим местом и переданным bounding box.
+
+        Args:
+            box (list): Bounding box [x, y, w, h]
+        """
         self.x = (self.x + box[0]) / 2
         self.y = (self.y + box[1]) / 2
         self.w = (self.w + box[2]) / 2
         self.h = (self.h + box[3]) / 2
-        self.count += 1
+        self.count += 1  # Увеличиваем счетчик использований
 
     async def delete(self):
+        """Удаляет запись о месте из базы данных."""
         _db_.delete_rows(self.line)
 
 
 async def save():
+    """Сохраняет текущее состояние базы данных (файл Excel)"""
     # print("saving...")
     _db_f.save(f"bd/{camera}.xlsx")
     # print("saving complete")
 
 
 async def init_db(newCamera):
+    """Загрухает файл текущей камеры"""
     global _db_
     global _db_f
     global camera
@@ -93,15 +135,25 @@ async def init_db(newCamera):
 
 
 async def now_all_space_free():
-    for i in range(1, _db_.max_row):
+    """Помечает все места в базе данных как свободные"""
+    for i in range(1, _db_.max_row + 1):
         _db_.cell(row=i, column=5).value = True
 
 
 async def cheсk_free_space():
+    """
+    Анализирует и классифицирует все места в базе данных по трем категориям:
+    1. Свободные места с высокой достоверностью (confidence > 5)
+    2. Потенциально свободные места с низкой достоверностью
+    3. Занятые места
+
+    Returns:
+        tuple: (free_space, shlak_but_space, not_free_space)
+    """
     free_space = []
     shlak_but_space = []
     not_free_space = []
-    for i in range(1, _db_.max_row  + 1):
+    for i in range(1, _db_.max_row + 1):
         place = Place(i)
         await place.load()
         if place.free and place.confidence > 5:
@@ -114,6 +166,10 @@ async def cheсk_free_space():
 
 
 async def reduced_reliability():
+    """
+    Уменьшает показатель достоверности для свободных мест.
+    Если достоверность падает ниже 0 - место удаляется из базы.
+    """
     for i in range(1, _db_.max_row + 1):
         place = Place(i)
         await place.load()
@@ -124,57 +180,86 @@ async def reduced_reliability():
 
 
 async def calculate_iou(box, push=True):
+    """
+    Вычисляет Intersection over Union (IoU) между переданным bounding box и всеми местами в БД.
+    Обновляет статус мест на основе результатов вычислений.
+
+    Args:
+        box (list): Bounding box в формате [x, y, width, height]
+        push (bool): Флаг сохранения изменений в БД (по умолчанию True)
+
+    Процесс работы:
+    1. Для каждого места вычисляется IoU с переданным box
+    2. Если IoU > 0.6 - место считается соответствующим box'у:
+       - Координаты места усредняются с box
+       - Увеличивается confidence
+    3. Если IoU > 0.15 - место помечается как занятое и все
+    4. Если ни одно место не соответствует box'у - создается новое место
+    """
     t = 0
     totalIOU = 0
     maxIOU = 0
-    flag = 1
-    # print(camera, box, _db_.max_row, end='\n')
+    flag = 1  # Флаг для определения необходимости создания нового места
+
     for i in range(1, _db_.max_row + 1):
         place = Place(i)
         await place.load()
-        # print(i, place.get(), end=' ')
+
+        # Вычисление координат пересечения
         y1 = np.maximum(box[0], place.x)
         y2 = np.minimum(box[2] + box[0], place.w + place.x)
         x1 = np.maximum(box[1], place.y)
         x2 = np.minimum(box[3] + box[1], place.h + place.y)
+
+        # Вычисление площади пересечения и объединения
         intersection = np.maximum(x2 - x1, 0) * np.maximum(y2 - y1, 0)
         union = box[2] * box[3] + place.h * place.w - intersection
         iou = intersection / union
+
         totalIOU += iou
-        # print(iou, end=' ')
-        if iou > 0.6:
-            place.finde_midle(box)
+
+        # Логика обновления места на основе IoU
+        if iou > 0.6:  # Сильное пересечение
+            place.finde_midle(box)  # Усредняем координаты
             tO = time.time()
             place.sub = iou
-            place.confidence += 1
+            place.confidence += 1  # Увеличиваем достоверность
             tN = time.time()
             t += tO - tN
+            flag = 0  # Новое место не нужно
+
+        if iou > 0.15:  # Среднее пересечение
+            place.free = False  # Помечаем как занятое
             flag = 0
-            # print("correct", end=" ")
-        if iou > 0.15:
-            place.free = False
-            flag = 0
-            # print("mark", end=" ")
         else:
             if place.sub + iou > 0.15:
                 place.free = False
             place.sub += iou
-            # print("free", end=" ")
-        # print("\n")
-        if push:
-            await place.push()
 
+        if push:
+            await place.push()  # Сохраняем изменения
+
+    # Если ни с одним местом нет достаточного пересечения - создаем новое
     if flag:
         place = Place(1)
         place.set(box, 0, 5, False, 0)
         if push:
-            # print("add")
             await place.add()
-    #print('\n')
+
     return True
 
 
 async def compute_overlaps(boxes, newCamera):
+    """
+    Основная функция обработки bounding boxes:
+    1. Открываем файл БД
+    2. Сбрасывает все IoU значения
+    3. Помечает все места как свободные
+    4. Обрабатывает каждый bounding box
+    5. Уменьшает достоверность свободных мест
+    6. Классифицирует места
+    7. Сохраняет изменения
+    """
     await init_db(newCamera)
     await setIOU()
     await now_all_space_free()
@@ -189,12 +274,18 @@ async def compute_overlaps(boxes, newCamera):
 
 
 async def setIOU():
-    # print(_db_.max_row)
+    """Сбрасывает все значения IoU в базе данных"""
     for i in range(1, _db_.max_row + 1):
         _db_.cell(row=i, column=8).value = 0
 
 
 async def draw_data(image_to_process, boxes, parking_color=(0, 255, 0)):
+    """
+    Визуализирует места на изображении с цветовой кодировкой:
+    - Зеленый: свободные с высокой достоверностью
+    - Оранжевый: свободные с низкой достоверностью
+    - Синие: занятые места
+    """
     color = parking_color
     width = 2
     for i in boxes:
@@ -213,6 +304,7 @@ async def draw_data(image_to_process, boxes, parking_color=(0, 255, 0)):
 
 
 async def delete_data():
+    """Функция для удаления данных (заглушка)"""
     return
 
 
