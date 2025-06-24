@@ -130,20 +130,19 @@ async def detect(camera, video_path, model):
         annotation = [center_x - (widthBox / 2), center_y - (heightBox / 2), widthBox, heightBox]
         annot_lines.append(annotation)
 
-        # Инициализация списков для классификации пространства
-        free_space = []
-        shlak = []
-        not_free_space = []
+    # Инициализация списков для классификации пространства
+    free_space = []
+    shlak = []
+    not_free_space = []
+    # Логирование времени анализа)
+    tN = time.time()
+    if annot_lines:
+        # Анализ пересечений bounding boxes
+        [free_space, shlak, not_free_space] = await sr.compute_overlaps(annot_lines, camera)
 
-        if annot_lines:
-            # Анализ пересечений bounding boxes
-            [free_space, shlak, not_free_space] = await sr.compute_overlaps(annot_lines, camera)
 
-        # Логирование времени анализа
-        print(camera, "Update data")
-        tN = time.time()
-        print(camera, "Analysis", tN - tO)
-        tO = tN
+    print(camera, "Analysis", tN - tO)
+    tO = tN
 
     # Финализация процесса детекции
     print(camera, "Complite detect")
