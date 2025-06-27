@@ -302,17 +302,18 @@ async def draw_data(image_to_process, boxes, parking_color=(0, 255, 0)):
     width = 2
     for i in boxes:
         for place in i:
-            x, y, w, h = int(place.x), int(place.y), int(place.w), int(place.h)
-            start = (x, y)
-            end = (x + w, y + h)
-            if place.free and place.confidence > 5:
-                color = (0, 255, 0)
-            elif place.free and place.confidence <= 5:
-                color = (0, 165, 255)
-            else:
-                color = (255, 0, 0)
-            image_to_process = cv2.rectangle(image_to_process, start, end, color, width)
-    return image_to_process
+            if place:
+                x, y, w, h = int(place.x), int(place.y), int(place.w), int(place.h)
+                start = (x, y)
+                end = (x + w, y + h)
+                if place.free and place.confidence > 5:
+                    color = (0, 255, 0)
+                elif place.free and place.confidence <= 5:
+                    color = (0, 165, 255)
+                else:
+                    color = (255, 0, 0)
+                image_to_process = cv2.rectangle(image_to_process, start, end, color, width)
+        return image_to_process
 
 
 async def delete_data():
