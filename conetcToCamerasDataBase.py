@@ -100,19 +100,10 @@ async def detAnalysisAddresses(address):
         # ===== БЛОК 4: Сбор и обработка результатов =====
         # Инициализируем списки для результатов
         answer = []  # Для полных результатов
-        freeSpaceImg = []  # Для изображений
-        freeSpace = []  # Для данных о свободных местах
 
         # Обрабатываем результаты по мере их готовности
         for future in futures:
-            # Получаем результат выполнения задачи
-            detectResult = future.result()
-
-            # Сохраняем результаты в соответствующие списки
-            answer.append(detectResult)  # Полный результат
-            freeSpaceImg.append(detectResult[0])  # Первый элемент - изображение
-            freeSpace.append(detectResult[1])  # Второй элемент - данные о местах
-
+            answer.append(future.result())  # Полный результат
     # Возвращаем собранные результаты
     return answer
 

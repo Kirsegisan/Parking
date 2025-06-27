@@ -60,14 +60,24 @@ class Place:
 
     async def load(self):
         """Загружает данные места из базы данных по номеру строки."""
-        self.x = _db_.cell(row=self.line, column=1).value
-        self.y = _db_.cell(row=self.line, column=2).value
-        self.h = _db_.cell(row=self.line, column=3).value
-        self.w = _db_.cell(row=self.line, column=4).value
-        self.free = _db_.cell(row=self.line, column=5).value
-        self.count = _db_.cell(row=self.line, column=6).value
-        self.confidence = _db_.cell(row=self.line, column=7).value
-        self.sub = _db_.cell(row=self.line, column=8).value
+        if self.line == 1 and _db_.cell(row=1, column=1).value == None:
+            self.x = 0
+            self.y = 0
+            self.h = 0
+            self.w = 0
+            self.free = True
+            self.count = 0
+            self.confidence = 0
+            self.sub = 0
+        else:
+            self.x = _db_.cell(row=self.line, column=1).value
+            self.y = _db_.cell(row=self.line, column=2).value
+            self.h = _db_.cell(row=self.line, column=3).value
+            self.w = _db_.cell(row=self.line, column=4).value
+            self.free = _db_.cell(row=self.line, column=5).value
+            self.count = _db_.cell(row=self.line, column=6).value
+            self.confidence = _db_.cell(row=self.line, column=7).value
+            self.sub = _db_.cell(row=self.line, column=8).value
 
     async def push(self):
         """Сохраняет текущие параметры места в базу данных."""
@@ -177,6 +187,8 @@ async def reduced_reliability():
             place.confidence -= 0.5
             if place.confidence < 0:
                 await place.delete()
+            else:
+                await place.push()
 
 
 async def calculate_iou(box, push=True):

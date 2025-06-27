@@ -8,6 +8,7 @@ from keyboards.main_kb import short_menu_buttons
 from settings import ADDRESSES
 from utils.users_db import get_user_addresses
 
+from app import NoImgError
 import conetcToCamerasDataBase
 import cv2
 from io import BytesIO
@@ -49,7 +50,6 @@ async def select_object(call: CallbackQuery):
                 detect_result[0],
                 caption=f'Вы выбрали объект {detect_result[4]}. Свободных мест {len(detect_result[1])}, занятых {len(detect_result[2])}, сомнительных {len(detect_result[3])}'
             )
-
     except Exception as e:
         error_msg = f"Ошибка при поиске объекта: {e}\n\nПолный traceback:\n{traceback.format_exc()}"
         print(error_msg)

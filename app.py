@@ -10,6 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt  # <-- Добавлено
 
 
+class NoImgError(Exception):
+    pass
+
 
 def show_image(image):
     plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))  # Конвертация BGR в RGB

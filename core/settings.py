@@ -3,7 +3,7 @@ import conetcToCamerasDataBase
 
 ADMIN_ID = 1974355978
 BOT_TOKEN = '7962713583:AAEZOrcnhpT1vER-5aAmywxim3qQ7NsrtLY'
-# BOT_TOKEN = '5285866637:AAE-EbkvJJd_p4gaX9Z8x2n7R42NXRmCSkA'
+BOT_TOKEN = '5285866637:AAE-EbkvJJd_p4gaX9Z8x2n7R42NXRmCSkA'
 
 
 locale.setlocale(locale.LC_COLLATE, 'ru_RU.UTF-8')
