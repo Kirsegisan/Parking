@@ -205,7 +205,7 @@ async def calculate_iou(box, push=True):
     2. Если IoU > 0.6 - место считается соответствующим box'у:
        - Координаты места усредняются с box
        - Увеличивается confidence
-    3. Если IoU > 0.15 - место помечается как занятое и все
+    3. Если IoU > 0.1 - место помечается как занятое и все
     4. Если ни одно место не соответствует box'у - создается новое место
     """
     t = 0
@@ -240,11 +240,11 @@ async def calculate_iou(box, push=True):
             t += tO - tN
             flag = 0  # Новое место не нужно
 
-        if iou > 0.15:  # Среднее пересечение
+        if iou > 0.1:  # Среднее пересечение
             place.free = False  # Помечаем как занятое
             flag = 0
         else:
-            if place.sub + iou > 0.15:
+            if place.sub + iou > 0.1:
                 place.free = False
             place.sub += iou
 
