@@ -1,0 +1,25 @@
+{
+    "boxes": [
+        {
+            "id": "1",
+            "label": "zone",
+            "x": "640.00",
+            "y": "242.73",
+            "width": "1280.00",
+            "height": "258.18",
+            "confidence": null
+        },
+        {
+            "id": "2",
+            "label": "zone",
+            "x": "983.09",
+            "y": "360.00",
+            "width": "273.64",
+            "height": "720.00",
+            "confidence": null
+        }
+    ],
+    "height": 720,
+    "key": "image17.png",
+    "width": 1280
+}
