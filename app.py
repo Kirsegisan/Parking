@@ -141,7 +141,7 @@ async def detect(camera, video_path, model):
     tN = time.time()
     if annot_lines:
         # Анализ пересечений bounding boxes
-        [free_space, shlak, not_free_space] = await sr.compute_overlaps(annot_lines, camera)
+        free_space, shlak, not_free_space = await sr.compute_overlaps(annot_lines, camera)
 
 
     print(camera, "Analysis", tN - tO)
@@ -151,7 +151,7 @@ async def detect(camera, video_path, model):
     print(camera, "Complite detect")
 
     # Визуализация результатов классификации пространства
-    foto = await sr.draw_data(cv2.imread(f"{camera}_original_images.png"), [free_space, shlak, not_free_space])
+    foto = await sr.draw_data(cv2.imread(f"{camera}_original_images.png"), free_space, shlak, not_free_space)
 
     # Замер времени рендеринга
     tN = time.time()

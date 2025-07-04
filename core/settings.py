@@ -3,7 +3,7 @@ import conetcToCamerasDataBase
 
 ADMIN_ID = 1974355978
 BOT_TOKEN = '7962713583:AAEZOrcnhpT1vER-5aAmywxim3qQ7NsrtLY'
-# BOT_TOKEN = '5285866637:AAE-EbkvJJd_p4gaX9Z8x2n7R42NXRmCSkA'
+# BOT_TOKEN = '8029805048:AAEWVQF42sFqF3Wzf--Bf6u43WS6mXMamgs'
 
 
 locale.setlocale(locale.LC_COLLATE, 'ru_RU.UTF-8')
@@ -15,7 +15,9 @@ ADDRESSES = conetcToCamerasDataBase.getAddresses()
 # )
 
 PAYMENTS = {  # Ключ - сумма. Значение - количество дней
-    '1': 0.000694444445,
+    '5': 0.00347,
+    '10': 0.00694444445,
+    '15': 0.01041,
     '100': 30,
     '200': 60,
     '300': 90,

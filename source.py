@@ -291,7 +291,7 @@ async def setIOU():
         _db_.cell(row=i, column=8).value = 0
 
 
-async def draw_data(image_to_process, boxes, parking_color=(0, 255, 0)):
+async def draw_data(image_to_process, free_space, shlak, not_free_space, parking_color=(0, 255, 0)):
     """
     Визуализирует места на изображении с цветовой кодировкой:
     - Зеленый: свободные с высокой достоверностью
@@ -300,20 +300,31 @@ async def draw_data(image_to_process, boxes, parking_color=(0, 255, 0)):
     """
     color = parking_color
     width = 2
-    for i in boxes:
-        for place in i:
-            if place:
-                x, y, w, h = int(place.x), int(place.y), int(place.w), int(place.h)
-                start = (x, y)
-                end = (x + w, y + h)
-                if place.free and place.confidence > 5:
-                    color = (0, 255, 0)
-                elif place.free and place.confidence <= 5:
-                    color = (0, 165, 255)
-                else:
-                    color = (255, 0, 0)
-                image_to_process = cv2.rectangle(image_to_process, start, end, color, width)
-        return image_to_process
+    for place in free_space:
+        if place.x and place.y and place.w and place.h:
+            x, y, w, h = int(place.x), int(place.y), int(place.w), int(place.h)
+            start = (x, y)
+            end = (x + w, y + h)
+            color = (0, 255, 0)
+            image_to_process = cv2.rectangle(image_to_process, start, end, color, width)
+
+    for place in shlak:
+        if place.x and place.y and place.w and place.h:
+            x, y, w, h = int(place.x), int(place.y), int(place.w), int(place.h)
+            start = (x, y)
+            end = (x + w, y + h)
+            color = (0, 165, 255)
+            image_to_process = cv2.rectangle(image_to_process, start, end, color, width)
+
+    for place in not_free_space:
+        if place.x and place.y and place.w and place.h:
+            x, y, w, h = int(place.x), int(place.y), int(place.w), int(place.h)
+            start = (x, y)
+            end = (x + w, y + h)
+            color = (255, 0, 0)
+            image_to_process = cv2.rectangle(image_to_process, start, end, color, width)
+
+    return image_to_process
 
 
 async def delete_data():

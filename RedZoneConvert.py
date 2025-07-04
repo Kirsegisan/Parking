@@ -3,7 +3,7 @@ from openpyxl import load_workbook
 import os
 import json
 def draw_red_zone(img, camera, t=-1):
-    with open(camera + ".txt") as file:
+    with open("RedZone/" + camera + ".txt") as file:
         data = json.load(file)
         if data != None:
             for i in data["boxes"]:

@@ -109,8 +109,11 @@ async def detAnalysisAddresses(address):
 
 def run_detect_in_process(camera, cameras):
     """Функция-обертка для запуска в отдельном процессе"""
-    print(camera, cameras)
-    return asyncio.run(app.detect(camera, cameras[camera], model))
+    try:
+        print(camera, cameras)
+        return asyncio.run(app.detect(camera, cameras[camera], model))
+    except Exception as e:
+        print(f"Ошибка в процессе для камеры {camera}: {e}")
 
 
 getAddressesString()
