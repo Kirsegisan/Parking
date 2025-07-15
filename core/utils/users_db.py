@@ -171,7 +171,9 @@ async def get_user_expired_date(user_id: int) -> datetime:
         cursor = await db.execute(
             'SELECT expired_date FROM users WHERE user_id = ?', (user_id,)
         )
+
         result = await cursor.fetchone()
+        print(result)
         if result and result[0]:
             return result[0]
         else:
@@ -187,7 +189,7 @@ async def set_user_expired_date(user_id: int, expired_date: datetime) -> None:
         await db.execute("""
             UPDATE users
             SET expired_date = ?, subscription = 'paid'
-            WHERE user_id = ?""", (expired_date.date(), user_id))
+            WHERE user_id = ?""", (expired_date, user_id))
         await db.commit()
         logger.info(
             f'Дата окончания подписки пользователя {user_id} установлена.')

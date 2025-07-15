@@ -74,9 +74,9 @@ async def verify_payment(call: CallbackQuery, state: FSMContext):
         )
         old_date = await get_user_expired_date(call.from_user.id)
         if old_date:
-            new_date = (datetime.strptime(await get_user_expired_date(call.from_user.id), "%Y-%m-%d %H:%M:%S.%f") + timedelta(days=PAYMENTS[data['amount']]))
+            new_date = (datetime.strptime(await get_user_expired_date(call.from_user.id), "%Y-%m-%d %H:%M:%S.%f") + timedelta(minutes=PAYMENTS[data['amount']]))
         else:
-            new_date = (datetime.now() + timedelta(days=PAYMENTS[data['amount']]))
+            new_date = (datetime.now() + timedelta(minutes=PAYMENTS[data['amount']]))
         await set_user_expired_date(call.from_user.id, new_date)
         await call.message.edit_text(
             f"✅ Подписка активна до {new_date}",
