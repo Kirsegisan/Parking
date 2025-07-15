@@ -1,8 +1,12 @@
+import aiosqlite
 import cv2
+import logging
 import numpy as np
 from openpyxl import load_workbook
 import time
 import asyncpg
+
+logger = logging.getLogger(__name__)
 
 _db_ = None
 _db_f = None
@@ -328,8 +332,60 @@ async def draw_data(image_to_process, free_space, shlak, not_free_space, parking
 
 
 async def delete_data():
-    """Функция для удаления данных (заглушка)"""
-    return
+    """Удаляет все данные из таблиц, но сохраняет структуру"""
+    async with aiosqlite.connect('core/databases/users.db') as db:
+        try:
+            # Очищаем таблицу users
+            await db.execute("DELETE FROM users")
+
+            # Если есть другие таблицы, их тоже можно очистить
+            # await db.execute("DELETE FROM other_table")
+
+            await db.commit()
+            logger.info('Все данные пользователей удалены')
+
+        except Exception as e:
+            await db.rollback()
+            logger.error(f'Ошибка при удалении данных: {e}')
+
+    """Удаляет все данные из subscriptions.db, сохраняя структуру таблиц"""
+    async with aiosqlite.connect('core/databases/subscriptions.db') as db:
+        try:
+            # Получаем список всех таблиц в базе
+            cursor = await db.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            tables = [row[0] for row in await cursor.fetchall()]
+
+            # Очищаем каждую таблицу
+            for table in tables:
+                await db.execute(f"DELETE FROM {table}")
+                logger.info(f'Данные из таблицы {table} удалены')
+
+            await db.commit()
+            logger.info('Все данные в subscriptions.db успешно очищены')
+
+        except Exception as e:
+            await db.rollback()
+            logger.error(f'Ошибка при очистке subscriptions.db: {e}')
+
+    """Удаляет все данные из referrals.db, сохраняя структуру таблиц"""
+    async with aiosqlite.connect('core/databases/referrals.db') as db:
+        try:
+            # Получаем список всех таблиц в базе
+            cursor = await db.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            tables = [row[0] for row in await cursor.fetchall()]
+
+            # Очищаем каждую таблицу
+            for table in tables:
+                await db.execute(f"DELETE FROM {table}")
+                logger.info(f'Данные из таблицы {table} удалены')
+
+            await db.commit()
+            logger.info('Все данные в referrals.db успешно очищены')
+
+        except Exception as e:
+            await db.rollback()
+            logger.error(f'Ошибка при очистке referrals.db: {e}')
+
 
 
 #
