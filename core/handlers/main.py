@@ -40,7 +40,7 @@ async def start_bot(call: CallbackQuery):
     await add_user(call.from_user.id, call.from_user.username)
     await update_user_contract(call.from_user.id)
     await call.message.edit_text(
-        '<b>Вы зарегистрировались. Доступен бесплатный период на 15 мин.</b>',
+        '<b>Добро пожаловать в сервис Parkovkaudoma. Вам доступен бесплатный тестовый период.</b>',
         reply_markup=short_menu_buttons()
         )
 
@@ -56,6 +56,6 @@ async def get_short_menu(callback: CallbackQuery):
 @main_router.callback_query(F.data == 'main_menu')
 async def get_full_menu(callback: CallbackQuery):
     await callback.message.edit_text(
-        'Полное меню.',
+        'Главное меню.',
         reply_markup=main_menu_buttons()
     )

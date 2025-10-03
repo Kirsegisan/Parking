@@ -17,6 +17,7 @@ class SubscriptionMiddleware(BaseMiddleware):
             return await handler(event, data)
         # if event.data.startswith("pay_"):
         #     return await handler(event, data)
+
         if not event.data == 'find_object':
             return await handler(event, data)
         user_id = event.from_user.id
@@ -30,17 +31,17 @@ class SubscriptionMiddleware(BaseMiddleware):
                 """, (user_id,),
             )
             user_data = await cursor.fetchone()
-        if user_data and not user_data[0] in ['free', 'paid']:
-            await event.answer(
-                "❌ Ваша подписка истекла. Пожалуйста, продлите её.",
-                show_alert=True,
-            )
-            await bot.send_message(
-                user_id,
-                'Продлите подписку.',
-                reply_markup=pay_service_kb()
-            )
-            return
+        # if user_data and not user_data[0] in ['free', 'paid']:
+        #     await event.answer(
+        #         "❌ Ваша подписка истекла. Пожалуйста, продлите её.",
+        #         show_alert=True,
+        #     )
+        #     await bot.send_message(
+        #         user_id,
+        #         'Продлите подписку.',
+        #         reply_markup=pay_service_kb()
+        #     )
+        #     return
         return await handler(event, data)
 
 

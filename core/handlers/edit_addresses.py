@@ -43,7 +43,7 @@ async def edit_addresses(call: CallbackQuery, state: FSMContext):
                   callback_data=f"address_{x}"
                   )# Используем само значение как callback_data
 
-    kb.button(text='⬅️ В главное меню', callback_data='back_to_main')
+    kb.button(text='⬅️ Меню', callback_data='back_to_main')
     kb.adjust(1)
     await call.message.edit_text(
         'Список доступных адресов:',
